@@ -2,6 +2,9 @@ from tkinter import *
 from PIL import ImageTk, Image, ImageDraw
 from datetime import *
 import time
+import csv
+import json
+from tkinter.filedialog import asksaveasfile
 
 
 class Dashboard:
@@ -64,7 +67,7 @@ class Dashboard:
 
         # Name of brand/person
         self.brandName = Label(
-            self.sidebar, text='Krishna Pal', bg='#ffffff', font=("", 15, "bold"))
+            self.sidebar, text='USER NAME', bg='#ffffff', font=("", 15, "bold"))
         self.brandName.place(x=80, y=200)
 
         # Add Device
@@ -166,12 +169,7 @@ class Dashboard:
     
     def devices(self):
         lst = [ ('List of Devices:', '', '',''),
-               ('Serial No.','Device Name','IP Address', 'Device Type'),
-               (1,'Krishna','192.16.34.09', 'Router'),
-               (2,'Dhruti','123.23.45.67', 'Router'),
-               (3,'Vrunda','123.193.20.04', 'Router'),
-               (4,'Aastha','133.144.155.166', 'Router'),
-               (5,'Sumit','244.255.255.255', 'Router')]
+               ('Serial No.','Description','IP Address', 'Device Type')]
         for i in range(len(lst)):
             for j in range(len(lst[0])):
                  
@@ -195,7 +193,7 @@ class Dashboard:
   
         lb3= Label(newWindow, text="Password", width=15, font=("arial",12))  
         lb3.place(x=9, y=160)  
-        en3= Entry(newWindow,width=25, font=("arial",12))
+        en3= Entry(newWindow, show='*', width=25, font=("arial",12))
         en3.place(x=200, y=160)  
   
         lb4= Label(newWindow, text="Description", width=15,font=("arial",12))  
@@ -214,16 +212,39 @@ class Dashboard:
   
         lb6= Label(newWindow, text="SSH Username", width=15,font=("arial",12))  
         lb6.place(x=11, y=280)  
-        en6= Entry(newWindow,show='*', width=25, font=("arial",12))
+        en6= Entry(newWindow, width=25, font=("arial",12))
         en6.place(x=200, y=280)  
   
         lb7= Label(newWindow, text="SSH Password", width=15,font=("arial",12))  
         lb7.place(x=11, y=320)  
         en7 = Entry(newWindow,show='*', width=25, font=("arial",12)) 
-        en7.place(x=200, y=320)  
-  
-        Button(newWindow, text="ADD", width=30).place(x=100,y=400)
+        en7.place(x=200, y=320)
 
+        def check_empty():
+            if en1.get() and en3.get():
+                add_to_list(en4.get(),en1.get(),"Router")
+            else:
+                lb = Label(newWindow, text="IP & Password Required!", width=20, fg='red', font=('Arial',11,'bold'))
+                lb.place(x=100, y=350)
+  
+        Button(newWindow, text="ADD", width=30, command=check_empty).place(x=100,y=400)
+
+        def add_to_list(desc, ip, cv):
+            print(desc, " ", ip, " ", cv)
+            list_devices = [desc, ip, cv]
+            # open the file in the write mode
+            f = open('IP.csv', 'w')
+
+            # create the csv writer
+            writer = csv.writer(f)
+
+            # write a row to the csv file
+            writer.writerow(list_devices)
+
+            # close the file
+            f.close()
+            
+            
 
 if __name__ == '__main__':
     window = Tk()
