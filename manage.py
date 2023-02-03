@@ -1,20 +1,20 @@
 from pymongo import MongoClient
 
-client = MongoClient('mongodb://localhost:27017/')
+client = MongoClient ('localhost', 27017)
+db = client.Cybernation
 
-db = client.database
 
-collection = db.devices
 
-device_1 = {
-    "name": "Krishna",
-    "IP": "193.192.180.08",
-    "Description": "Time Pass"
-}
-
-add = collection.insert_one(device_1)
-print(add)
-
-cursor = collection.find()
-for record in cursor:
-    print(record)
+def savedevice(name,ip, desc, type, ssh_u, ssh_p):
+    collection = db.devices
+    data = {
+        "Name": name,
+        "IP": ip,
+        "Description": desc,
+        "Type" : type,
+        "Username" : ssh_u,
+        "Password" : ssh_p,
+        "Config" : {}
+    }
+    collection.insert_one(data)
+    

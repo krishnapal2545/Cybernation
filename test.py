@@ -3,8 +3,7 @@ from PIL import ImageTk, Image, ImageDraw
 from datetime import *
 import time
 import csv
-import json
-from tkinter.filedialog import asksaveasfile
+from manage import *
 
 
 class Dashboard:
@@ -77,7 +76,7 @@ class Dashboard:
         self.dashboard.place(x=35, y=289)
 
         self.dashboard_text = Button(self.sidebar, text="Add Device", bg='#ffffff', font=("", 13, "bold"), bd=0,
-                                     cursor='hand2', activebackground='#ffffff', command= self.add_router)
+                                     cursor='hand2', activebackground='#ffffff', command= self.add_device)
         self.dashboard_text.place(x=80, y=287)
 
         # Manage
@@ -177,7 +176,7 @@ class Dashboard:
                                width=20, fg='blue', font=('Arial',16,'bold'))
                 self.e.grid(row=i, column=j)
 
-    def add_router(self):
+    def add_device(self):
         # Toplevel object which will be treated as a new window
         newWindow = Toplevel(self.window)
         # sets the title of the Toplevel widget
@@ -186,65 +185,57 @@ class Dashboard:
         # sets the geometry of toplevel
         newWindow.geometry("450x500")
         # A Label widget to show in toplevel
-        lb1= Label(newWindow, text="IP Address", width=15, font=("arial",12))  
+        lb1= Label(newWindow, text="Name", width=15, font=("arial",12))  
         lb1.place(x=10, y=120)  
         en1= Entry(newWindow,width=25, font=("arial",12)) 
         en1.place(x=200, y=120)  
   
-        lb3= Label(newWindow, text="Password", width=15, font=("arial",12))  
-        lb3.place(x=9, y=160)  
-        en3= Entry(newWindow, show='*', width=25, font=("arial",12))
-        en3.place(x=200, y=160)  
+        lb2= Label(newWindow, text="IP Address", width=15, font=("arial",12))  
+        lb2.place(x=9, y=160)  
+        en2= Entry(newWindow, width=25, font=("arial",12))
+        en2.place(x=200, y=160)  
   
-        lb4= Label(newWindow, text="Description", width=15,font=("arial",12))  
-        lb4.place(x=10, y=200)  
-        en4= Entry(newWindow,width=25, font=("arial",12))
-        en4.place(x=200, y=200)  
+        lb3= Label(newWindow, text="Description", width=15,font=("arial",12))  
+        lb3.place(x=10, y=200)  
+        en3= Entry(newWindow,width=25, font=("arial",12))
+        en3.place(x=200, y=200)  
 
-        list_of_devices = ("Router", "Switch")  
+        lb4= Label(newWindow, text="Select Device", width=15,font=("arial",12))  
+        lb4.place(x=10,y=240) 
+        type_of_devices = ("Router", "Switch")  
         cv = StringVar()  
-        drplist= OptionMenu(newWindow, cv, *list_of_devices)  
-        drplist.config(width=20)  
-        cv.set("Router")  
-        lb2= Label(newWindow, text="Select Device", width=15,font=("arial",12))  
-        lb2.place(x=10,y=240)  
-        drplist.place(x=200, y=240)  
+        cv.set("Router") 
+        en4= OptionMenu(newWindow, cv, *type_of_devices)  
+        en4.config(width=20)    
+        en4.place(x=200, y=240)  
   
-        lb6= Label(newWindow, text="SSH Username", width=15,font=("arial",12))  
-        lb6.place(x=11, y=280)  
-        en6= Entry(newWindow, width=25, font=("arial",12))
-        en6.place(x=200, y=280)  
+        lb5= Label(newWindow, text="SSH Username", width=15,font=("arial",12))  
+        lb5.place(x=11, y=280)  
+        en5= Entry(newWindow, width=25, font=("arial",12))
+        en5.place(x=200, y=280)  
   
-        lb7= Label(newWindow, text="SSH Password", width=15,font=("arial",12))  
-        lb7.place(x=11, y=320)  
-        en7 = Entry(newWindow,show='*', width=25, font=("arial",12)) 
-        en7.place(x=200, y=320)
-
+        lb6= Label(newWindow, text="SSH Password", width=15,font=("arial",12))  
+        lb6.place(x=11, y=320)  
+        en6 = Entry(newWindow,show='*', width=25, font=("arial",12)) 
+        en6.place(x=200, y=320)
+        
         def check_empty():
-            if en1.get() and en3.get():
-                add_to_list(en4.get(),en1.get(),"Router")
-            else:
-                lb = Label(newWindow, text="IP & Password Required!", width=20, fg='red', font=('Arial',11,'bold'))
+    
+            if db.devices.find_one({ "IP" : en2.get()}):
+                lb = Label(newWindow, text="IP address had already used", fg='red', font=('Arial',11,'bold'))
                 lb.place(x=100, y=350)
-  
+            elif en1.get() and en2.get() and en3.get() and cv.get() and en5.get() and en6.get():
+                savedevice(en1.get(), en2.get(), en3.get(), cv.get(), en5.get(), en6.get())
+                newWindow.destroy()
+            else:
+                lb = Label(newWindow, text="Make sure every detail you have filled", fg='red', font=('Arial',11,'bold'))
+                lb.place(x=100, y=350)
+
         Button(newWindow, text="ADD", width=30, command=check_empty).place(x=100,y=400)
+  
+        
 
-        def add_to_list(desc, ip, cv):
-            print(desc, " ", ip, " ", cv)
-            list_devices = [desc, ip, cv]
-            # open the file in the write mode
-            f = open('IP.csv', 'w')
-
-            # create the csv writer
-            writer = csv.writer(f)
-
-            # write a row to the csv file
-            writer.writerow(list_devices)
-
-            # close the file
-            f.close()
-            
-            
+    
 
 if __name__ == '__main__':
     window = Tk()
