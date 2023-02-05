@@ -13,6 +13,7 @@ class Dashboard:
         self.window.geometry("1366x768")
         self.window.state('zoomed')
         self.window.config(background='#eff5f6')
+        
         # Window Icon Photo
         icon = PhotoImage(file='images\\icon.png')
         self.window.iconphoto(True, icon)
@@ -21,27 +22,22 @@ class Dashboard:
         self.header = Frame(self.window, bg='#009df4')
         self.header.place(x=300, y=0, width=1070, height=60)
 
-        self.logout_text = Button(self.header, text="Logout", bg='#32cf8e', font=("", 13, "bold"), bd=0, fg='white',
-                                  cursor='hand2', activebackground='#32cf8e')
-        self.logout_text.place(x=950, y=15)
+        # self.logout_text = Button(self.header, text="Logout", bg='#32cf8e', font=("", 13, "bold"), bd=0, fg='white',
+        #                           cursor='hand2', activebackground='#32cf8e')
+        # self.logout_text.place(x=950, y=15)
 
-        # ==============================================================================
         # ================== SIDEBAR ===================================================
-        # ==============================================================================
         self.sidebar = Frame(self.window, bg='#ffffff')
         self.sidebar.place(x=0, y=0, width=300, height=750)
 
-        # =============================================================================
         # ============= BODY ==========================================================
-        # =============================================================================
+
         self.heading = Label(self.window, text='Dashboard', font=("", 15, "bold"), fg='#0064d3', bg='#eff5f6')
         self.heading.place(x=325, y=70)
 
         # body frame 1
         self.list_device = Frame(self.window, bg='#ffffff')
         self.list_device.place(x=328, y=110, width=1040, height=350)
-        # v = Scrollbar(self.list_device)
-        # # v.pack(side = RIGHT, fill = Y)
 
         # body frame 2
         self.bodyFrame2 = Frame(self.window, bg='#009aa5')
@@ -167,14 +163,15 @@ class Dashboard:
         self.date_time.after(100, self.show_time)
     
     def devices(self):
-        lst = [ ('List of Devices:', '', '',''),
-               ('Serial No.','Description','IP Address', 'Device Type')]
-        for i in range(len(lst)):
-            for j in range(len(lst[0])):
+        lst = [' ','Device Name','IP Address','Device Type']
+        trv = ttk.Treeview(self.window, selectmode = 'browse')
+        trv.grid()
+        # for i in range(len(lst)):
+        #     for j in range(len(lst[0])):
                  
-                self.e = Label(self.list_device, text= str(lst[i][j]),bg='#ffffff',
-                               width=20, fg='blue', font=('Arial',16,'bold'))
-                self.e.grid(row=i, column=j)
+        #         self.e = Label(self.list_device, text= str(lst[i][j]),bg='#ffffff',
+        #                        width=20, fg='blue', font=('Arial',16,'bold'))
+        #         self.e.grid(row=i, column=j)
 
     def add_device(self):
         # Toplevel object which will be treated as a new window
@@ -233,9 +230,6 @@ class Dashboard:
 
         Button(newWindow, text="ADD", width=30, command=check_empty).place(x=100,y=400)
   
-        
-
-    
 
 if __name__ == '__main__':
     window = Tk()
