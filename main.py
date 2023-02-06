@@ -1,4 +1,5 @@
 from tkinter import *
+from tkinter import ttk
 from PIL import ImageTk, Image, ImageDraw
 from datetime import *
 import time
@@ -163,15 +164,29 @@ class Dashboard:
         self.date_time.after(100, self.show_time)
     
     def devices(self):
-        lst = [' ','Device Name','IP Address','Device Type']
-        trv = ttk.Treeview(self.window, selectmode = 'browse')
-        trv.grid()
-        # for i in range(len(lst)):
-        #     for j in range(len(lst[0])):
-                 
-        #         self.e = Label(self.list_device, text= str(lst[i][j]),bg='#ffffff',
-        #                        width=20, fg='blue', font=('Arial',16,'bold'))
-        #         self.e.grid(row=i, column=j)
+        trv = ttk.Treeview(self.list_device, selectmode = 'browse')
+        trv.grid(row=1,column=1,padx=20,pady=20)
+        trv['height']=15 # Number of rows to display, default is 10
+        trv['show'] = 'headings' 
+        # column identifiers 
+        trv["columns"] = [1,2,3,4,5]
+        trv.column(1, width = 100, anchor ='c') # Headings of respective columns
+        trv.heading(1, text = 'Sr. No.')
+        trv.column(2, width = 200, anchor ='c') # Headings of respective columns
+        trv.heading(2, text = 'Device Name')
+        trv.column(3, width = 200, anchor ='c') # Headings of respective columns
+        trv.heading(3, text = 'IP Adress')
+        trv.column(4, width = 200, anchor ='c') # Headings of respective columns
+        trv.heading(4, text = 'Device Type')
+        trv.column(5, width = 300, anchor ='c') # Headings of respective columns
+        trv.heading(5, text = '')
+        i = 0
+        for data in getAlldevice():
+            i = i + 1
+            lst = [i,data['Name'],data['IP'],data['Type'],'']
+            trv.insert("",'end',iid=lst[0],values=lst)
+            
+    
 
     def add_device(self):
         # Toplevel object which will be treated as a new window
@@ -224,6 +239,7 @@ class Dashboard:
             elif en1.get() and en2.get() and en3.get() and cv.get() and en5.get() and en6.get():
                 savedevice(en1.get(), en2.get(), en3.get(), cv.get(), en5.get(), en6.get())
                 newWindow.destroy()
+                self.window.update()
             else:
                 lb = Label(newWindow, text="Make sure every detail you have filled", fg='red', font=('Arial',11,'bold'))
                 lb.place(x=100, y=350)

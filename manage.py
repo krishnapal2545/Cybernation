@@ -17,4 +17,10 @@ def savedevice(name,ip, desc, type, ssh_u, ssh_p):
         "Config" : {}
     }
     collection.insert_one(data)
+
+def getAlldevice():
+    collection = db.devices
+    x = collection.find()
+    print(type(x))
+    return x
     
