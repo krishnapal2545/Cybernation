@@ -5,15 +5,16 @@ db = client.Cybernation
 
 
 
-def savedevice(name,ip, desc, type, ssh_u, ssh_p):
+def savedevice(name,ip, desc, dtype, ssh_u, ssh_p, LM):
     collection = db.devices
     data = {
         "Name": name,
         "IP": ip,
         "Description": desc,
-        "Type" : type,
+        "Type" : dtype,
         "Username" : ssh_u,
         "Password" : ssh_p,
+        "Last_Modify" : LM,
         "Config" : {}
     }
     collection.insert_one(data)
@@ -21,6 +22,9 @@ def savedevice(name,ip, desc, type, ssh_u, ssh_p):
 def getAlldevice():
     collection = db.devices
     x = collection.find()
-    print(type(x))
     return x
-    
+
+def getdevice(IP):
+    collection = db.devices
+    x = collection.find_one({"IP":IP})
+    return x
