@@ -119,7 +119,6 @@ class Dashboard:
         # Body Frame 4
 
         
-
     def show_time(self):
         self.time = time.strftime("%H:%M:%S")
         self.date = time.strftime('%Y/%m/%d')
@@ -166,46 +165,51 @@ class Dashboard:
         newWindow.resizable(False,False)
         # sets the geometry of toplevel
         newWindow.geometry("450x500")
+        #image
+        device_img = PhotoImage(file='images/device.png')
+        device_info = Label(newWindow, image= device_img, height= 100)
+        device_info.pack()
+        device_info.place(x=130, y= 20)
         # A Label widget to show in toplevel
         lb1= Label(newWindow, text="Name", width=15, font=("arial",12))  
-        lb1.place(x=10, y=120)  
+        lb1.place(x=10, y=140)  
         en1= Entry(newWindow,width=25, font=("arial",12)) 
-        en1.place(x=200, y=120)  
+        en1.place(x=200, y=140)  
   
         lb2= Label(newWindow, text="IP Address", width=15, font=("arial",12))  
-        lb2.place(x=9, y=160)  
+        lb2.place(x=9, y=180)  
         en2= Entry(newWindow, width=25, font=("arial",12))
-        en2.place(x=200, y=160)  
+        en2.place(x=200, y=180)  
   
         lb3= Label(newWindow, text="Description", width=15,font=("arial",12))  
-        lb3.place(x=10, y=200)  
+        lb3.place(x=10, y=220)  
         en3= Entry(newWindow,width=25, font=("arial",12))
-        en3.place(x=200, y=200)  
+        en3.place(x=200, y=220)  
 
         lb4= Label(newWindow, text="Select Device", width=15,font=("arial",12))  
-        lb4.place(x=10,y=240) 
+        lb4.place(x=10,y=260) 
         type_of_devices = ("Router", "Switch")  
         cv = StringVar()  
         cv.set("Router") 
         en4= OptionMenu(newWindow, cv, *type_of_devices)  
         en4.config(width=20)    
-        en4.place(x=200, y=240)  
+        en4.place(x=200, y=260)  
   
         lb5= Label(newWindow, text="SSH Username", width=15,font=("arial",12))  
-        lb5.place(x=11, y=280)  
+        lb5.place(x=11, y=300)  
         en5= Entry(newWindow, width=25, font=("arial",12))
-        en5.place(x=200, y=280)  
+        en5.place(x=200, y=300)  
   
         lb6= Label(newWindow, text="SSH Password", width=15,font=("arial",12))  
-        lb6.place(x=11, y=320)  
+        lb6.place(x=11, y=340)  
         en6 = Entry(newWindow,show='*', width=25, font=("arial",12)) 
-        en6.place(x=200, y=320)
+        en6.place(x=200, y=340)
         
         def check_empty():
     
             if db.devices.find_one({ "IP" : en2.get()}):
                 lb = Label(newWindow, text="IP address had already used", fg='red', font=('Arial',11,'bold'))
-                lb.place(x=100, y=350)
+                lb.place(x=100, y=360)
             elif en1.get() and en2.get() and en3.get() and cv.get() and en5.get() and en6.get():
                 global count
                 count = count + 1
@@ -216,59 +220,64 @@ class Dashboard:
                 
             else:
                 lb = Label(newWindow, text="Device Information can not be left blank", fg='red', font=('Arial',11,'bold'))
-                lb.place(x=100, y=350)
+                lb.place(x=100, y=360)
 
         Button(newWindow, text="ADD", width=30, command=check_empty).place(x=100,y=400)
+        newWindow.mainloop()
     
+    def deletedevice(self,IP):
+        deleteDevice(IP)
+        
+    def configWindow(self):
+        newWindow = Toplevel(self.window)
+        newWindow.title("Device New Configuration")
+        newWindow.resizable(False,False)
+        newWindow.geometry("430x450")
+        newWindow.configure(bg='white')
+        
+        #image
+        device_img = PhotoImage(file='images\device.png')
+        device_info = Label(newWindow, image= device_img, bg='white')
+        device_info.pack()
+        device_info.place(x=130, y= 20)
+
+
+        newWindow.mainloop()
+
     def deviceInfo(self,event):
         IP = self.trv.selection()[0]
         data = getdevice(IP)
         newWindow = Toplevel(self.window)
         newWindow.title("Device Information")
         newWindow.resizable(False,False)
-        newWindow.geometry("450x500")
-        frame = Frame(newWindow, width=450, height=500)
-        frame.pack()
-        device_img = ImageTk.PhotoImage(Image.open('images/device.png'))
-        device_info = Label(frame, image= device_img, bg= '#ffffff')
+        newWindow.geometry("430x450")
+        newWindow.configure(bg='white')
+        
+        #image
+        device_img = PhotoImage(file='images\device.png')
+        device_info = Label(newWindow, image= device_img, bg='white')
         device_info.pack()
         device_info.place(x=130, y= 20)
         
         # A Label widget to show in toplevel
-        lb1= Label(newWindow, text="Name", width=15, font=("arial",12))  
-        lb1.place(x=10, y=140)  
-        en1= Label(newWindow, text= data['Name'], width=25, font=("arial",12)) 
-        en1.place(x=200, y=140)  
-  
-        lb2= Label(newWindow, text="IP Address", width=15, font=("arial",12))  
-        lb2.place(x=9, y=180)  
-        en2= Label(newWindow,text= data['IP'], width=25, font=("arial",12))
-        en2.place(x=200, y=180)  
-  
-        lb3= Label(newWindow, text="Description", width=15,font=("arial",12))  
-        lb3.place(x=10, y=220)  
-        en3= Label(newWindow,text= data['Description'], width=25, font=("arial",12))
-        en3.place(x=200, y=220)  
+        Label(newWindow, text="Name : ",font=("arial",12),bg='white').place(x = 40,y = 160)  
+        Label(newWindow, text= data['Name'], font=("arial",12),bg='white').place(x= 180, y=160) 
+        Label(newWindow, text="IP Address : ", font=("arial",12),bg='white').place(x=40, y=200)  
+        Label(newWindow,text= data['IP'], font=("arial",12),bg='white').place(x=180, y=200)
+        Label(newWindow, text="Description : ", font=("arial",12),bg='white').place(x=40, y=240)   
+        Label(newWindow,text= data['Description'], font=("arial",12),bg='white').place(x=180, y=240)
+        Label(newWindow, text="SSH Username : ", font=("arial",12),bg='white').place(x=40, y=280)  
+        Label(newWindow,text= data['Username'],font=("arial",12),bg='white').place(x=180, y=280)
+        Label(newWindow,text="Last Modify : ",font=("arial",12),bg='white').place(x = 40,y= 320)
+        Label(newWindow,text=data['Last_Modify'],font=("arial",12),bg='white').place(x=180, y=320)
 
-        # lb4= Label(newWindow, text="Select Device", width=15,font=("arial",12))  
-        # lb4.place(x=10,y=260) 
-        # type_of_devices = ("Router", "Switch")  
-        # cv = StringVar()  
-        # cv.set("Router") 
-        # en4= OptionMenu(newWindow, cv, *type_of_devices)  
-        # en4.config(width=20)    
-        # en4.place(x=200, y=260)  
-  
-        lb5= Label(newWindow, text="SSH Username", width=15,font=("arial",12))  
-        lb5.place(x=11, y=300)  
-        en5= Label(newWindow,text= data['Username'], width=25, font=("arial",12))
-        en5.place(x=200, y=300)  
-  
-        lb6= Label(newWindow, text="SSH Password", width=15,font=("arial",12))  
-        lb6.place(x=11, y=340)  
-        en6 = Label(newWindow, text= data['Password'], width=25, font=("arial",12)) 
-        en6.place(x=200, y=340)
-    
+        # Button for operation
+        Button(newWindow, text= 'New Configuration', width= 15,bg='light blue', command= self.configWindow).place(x=30, y= 380)
+        Button(newWindow, text= 'Old Configuration', width= 15,bg='light green').place(x=160, y= 380)
+        Button(newWindow, text= 'Delete Device', width= 15,bg='red').place(x=290, y= 380)
+
+        newWindow.mainloop()
+
 
 
 if __name__ == '__main__':

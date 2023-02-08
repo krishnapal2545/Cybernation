@@ -1,6 +1,7 @@
 from pymongo import MongoClient
 
 client = MongoClient ('localhost', 27017)
+
 db = client.Cybernation
 
 
@@ -28,3 +29,7 @@ def getdevice(IP):
     collection = db.devices
     x = collection.find_one({"IP":IP})
     return x
+
+def deleteDevice(IP):
+    collection = db.devices
+    collection.delete_one({"IP":IP})
