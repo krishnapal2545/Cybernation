@@ -4,11 +4,9 @@ client = MongoClient ('localhost', 27017)
 
 db = client.Cybernation
 
-
-
-def savedevice(name,ip, desc, dtype, ssh_u, ssh_p, LM):
-    collection = db.devices
+def savedevice(user,name,ip, desc, dtype, ssh_u, ssh_p, LM):
     data = {
+        "userid" : user["_id"],
         "Name": name,
         "IP": ip,
         "Description": desc,
@@ -16,13 +14,13 @@ def savedevice(name,ip, desc, dtype, ssh_u, ssh_p, LM):
         "Username" : ssh_u,
         "Password" : ssh_p,
         "Last_Modify" : LM,
-        "Config" : {}
     }
-    collection.insert_one(data)
-
-def getAlldevice():
     collection = db.devices
-    x = collection.find()
+    collection.insert_one(data)
+    
+def getAlldevice(user):
+    collection = db.devices
+    x = collection.find({"userid" : user["_id"]})
     return x
 
 def getdevice(IP):
@@ -33,3 +31,16 @@ def getdevice(IP):
 def deleteDevice(IP):
     collection = db.devices
     collection.delete_one({"IP":IP})
+
+def saveUser(fname,lname,gen,org,uname,passw):
+    collection = db.User
+    data = {
+        "Fname": fname,
+        "Lname": lname,
+        "Gender":gen,
+        "Org": org,
+        "Username" : uname,
+        "Password" : passw,
+    }
+    collection.insert_one(data)
+
