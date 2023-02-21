@@ -6,7 +6,7 @@ db = client.Cybernation
 
 def savedevice(user,name,ip, desc, dtype, ssh_u, ssh_p, LM):
     data = {
-        "userid" : user["_id"],
+        "userID" : user["_id"],
         "Name": name,
         "IP": ip,
         "Description": desc,
@@ -20,7 +20,7 @@ def savedevice(user,name,ip, desc, dtype, ssh_u, ssh_p, LM):
     
 def getAlldevice(user):
     collection = db.devices
-    x = collection.find({"userid" : user["_id"]})
+    x = collection.find({"userID" : user["_id"]})
     return x
 
 def getdevice(IP):
