@@ -1,9 +1,10 @@
 from tkinter import *
-from tkinter import ttk
+from tkinter import ttk, messagebox
 from PIL import ImageTk, Image, ImageDraw
 from datetime import *
 import time
 from manage import *
+from ipaddress import *
 
 
 class Dashboard:
@@ -27,21 +28,15 @@ class Dashboard:
         self.sidebar = Frame(self.window, bg='#ffffff').place(x=0, y=0, width=300, height=750)
 
         # ============= BODY ==========================================================
-
-        self.heading = Label(self.window, text='Dashboard', font=("", 15, "bold"), fg='#0064d3', bg='#eff5f6').place(x=325, y=70)
-
         # body frame 1
-        self.list_device = Frame(self.window, bg='#ffffff')
-        self.list_device.place(x=328, y=110, width=1040, height=350)
+        Label(self.window, text='Dashboard', font=("", 15, "bold"), fg='black', bg='white', width=20).place(x=325, y=30)
+        self.list_device = Frame(self.window, bg='white')
+        self.list_device.place(x=325, y=60, width=1020, height=340)
 
         # body frame 2
-        self.bodyFrame2 = Frame(self.window, bg='#009aa5').place(x=328, y=495, width=310, height=220)
-
-        # body frame 3
-        self.bodyFrame3 = Frame(self.window, bg='#e21f26').place(x=680, y=495, width=310, height=220)
-
-        # body frame 4
-        self.bodyFrame4 = Frame(self.window, bg='#ffcb1f').place(x=1030, y=495, width=310, height=220)
+        Label(self.window, text='Output', font=("", 15, "bold"), fg='white', bg='black', width=20).place(x=325, y= 410)
+        self.list_output = Frame(self.window, bg='black')
+        self.list_output.place(x=325, y= 440, width= 1020, height=260)
 
         # ==============================================================================
         # ================== SIDEBAR ===================================================
@@ -67,47 +62,45 @@ class Dashboard:
         self.Username = Label(self.sidebar, text= uname, bg='#ffffff', font=("", 15, "bold")).place(x=80, y=240)
 
         #Gender
-        self.gen_img = ImageTk.PhotoImage(file='images/gender.png')
-        Label(self.sidebar, image= self.gen_img, bg='#ffffff').place(x=10, y= 290)
-        Label(self.sidebar, text= user['Gender'], bg='#ffffff', font='Verdana 13 bold').place(x=80,y=300)
+        self.gen_img = PhotoImage(file='images/gender.png').subsample(2,2)
+        Label(self.sidebar, image= self.gen_img, bg='#ffffff').place(x=30, y= 290)
+        Label(self.sidebar, text= user['Gender'], bg='#ffffff', font='Verdana 11 ').place(x=80,y=290)
 
         #Organi
-        self.org_img = ImageTk.PhotoImage(file='images/org.png')
-        Label(self.sidebar, image= self.org_img, bg='#ffffff').place(x=10, y= 350)
-        Label(self.sidebar, text= user['Org'], bg='#ffffff', font='Verdana 13 bold').place(x=80,y=370)
+        self.org_img = PhotoImage(file='images/org.png').subsample(2,2)
+        Label(self.sidebar, image= self.org_img, bg='#ffffff').place(x=30, y= 330)
+        Label(self.sidebar, text= user['Org'], bg='#ffffff', font='Verdana 11 ').place(x=80,y=330)
 
         #Contact
-        self.contact_img = PhotoImage(file='images/contact.png')
-        Label(self.sidebar, image= self.contact_img, bg='#ffffff').place(x=15, y= 420)
-        Label(self.sidebar, text= '8318031071', bg='#ffffff', font='Verdana 13 bold').place(x=80,y=440)
+        self.contact_img = PhotoImage(file='images/contact.png').subsample(2,2)
+        Label(self.sidebar, image= self.contact_img, bg='#ffffff').place(x=30, y= 370)
+        Label(self.sidebar, text= '8318031071', bg='#ffffff', font='Verdana 11').place(x=80,y=370)
         
-
         # Separator object
         separator = ttk.Separator(self.sidebar, orient='horizontal')
-        separator.place(relx=0, rely= 0.83, relwidth=0.22)
+        separator.place(x=0, y= 610, width=300)
 
         # Add Device
-        self.routerImage = PhotoImage(file='images/device.png').subsample(3,3)
-        Button(self.sidebar, text="  Add Device", bg='#ffffff', font=("", 14, "bold"), bd=0, image= self.routerImage, compound= LEFT,
-        cursor='hand2', height=40,activebackground='#ffffff', command= self.add_device).place(relx= 0.035, rely= 0.835)
+        self.routerImage = PhotoImage(file='images/device.png').subsample(4,4)
+        Button(self.sidebar, text="  Add Device", bg='#ffffff', font=("", 13, "bold"), bd=0, image= self.routerImage, compound= LEFT,
+        cursor='hand2',activebackground='#ffffff', command= self.add_device).place(x=50, y= 620)
 
         # Separator object
         separator = ttk.Separator(self.sidebar, orient='horizontal')
-        separator.place(relx=0, rely= 0.91, relwidth=0.22)
+        separator.place(x=0, y= 660, width= 300)
 
         # Settings
-        self.settingsImage = PhotoImage(file='images/setting.png')
+        self.settingsImage = PhotoImage(file='images/setting.png').subsample(2,2)
         Button(self.sidebar, text="Settings", bg='#ffffff', font=("", 13, "bold"), bd=0, image= self.settingsImage, compound= LEFT,
-        cursor='hand2', activebackground='#ffffff').place(relx=0, rely=0.92)
+        cursor='hand2', activebackground='#ffffff').place(x= 10, y= 670)
         
         # Separator object
-        separator = ttk.Separator(self.sidebar, orient='vertical').place(relx=0.109, rely= 0.91, relheight= 0.22)
-
+        separator = ttk.Separator(self.sidebar, orient='vertical').place(x= 150, y= 660, height= 40)
 
         # Logout
-        self.logoutImage = PhotoImage(file='images/logout.png')
+        self.logoutImage = PhotoImage(file='images/logout.png').subsample(2,2)
         Button(self.sidebar, text="  Logout!  ", bg='#ffffff', font=("", 13, "bold"), bd=0, image= self.logoutImage, compound= LEFT,
-        cursor='hand2', activebackground='#ffffff', command= lambda : self.window.destroy()).place(relx=0.12, rely=0.92)
+        cursor='hand2', activebackground='#ffffff', command= lambda : self.window.destroy()).place(x=170, y=670)
 
         # =============================================================================
         # ============= BODY ==========================================================
@@ -115,6 +108,9 @@ class Dashboard:
 
         # Body Frame 1
         self.devices()
+
+        # Body Frame 2
+        self.output()
         
     def show_time(self):
         self.time = time.strftime("%H:%M:%S")
@@ -126,97 +122,123 @@ class Dashboard:
     
     def devices(self):
         
-        self.trv = ttk.Treeview(self.list_device, selectmode = 'browse')
-        self.trv.grid(row=1,column=0,columnspan=3,padx=20,pady=20)
-        self.trv['height']=14 # Number of rows to display, default is 10
-        self.trv['show'] = 'headings' 
-        self.trv["columns"] = [1,2,3,4,5] # column identifiers 
-        self.trv.column(1, width = 120, anchor ='c') # Headings of respective columns
-        self.trv.heading(1, text = 'Sr. No.')
-        self.trv.column(2, width = 200, anchor ='c') # Headings of respective columns
-        self.trv.heading(2, text = 'Device Name')
-        self.trv.column(3, width = 200, anchor ='c') # Headings of respective columns
-        self.trv.heading(3, text = 'IP Adress')
-        self.trv.column(4, width = 200, anchor ='c') # Headings of respective columns
-        self.trv.heading(4, text = 'Device Type')
-        self.trv.column(5, width = 250, anchor ='c') # Headings of respective columns
-        self.trv.heading(5, text = 'Last Modify')
+        self.trv_device = ttk.Treeview(self.list_device, selectmode = 'browse')
+        self.trv_device.grid(row=1,column=0,columnspan=3,padx=20,pady=20)
+        self.trv_device['height']=14 # Number of rows to display, default is 10
+        self.trv_device['show'] = 'headings' 
+        self.trv_device["columns"] = [1,2,3,4,5] # column identifiers 
+        self.trv_device.column(1, width = 120, anchor ='c') # Headings of respective columns
+        self.trv_device.heading(1, text = 'Sr. No.')
+        self.trv_device.column(2, width = 200, anchor ='c') # Headings of respective columns
+        self.trv_device.heading(2, text = 'Device Name')
+        self.trv_device.column(3, width = 200, anchor ='c') # Headings of respective columns
+        self.trv_device.heading(3, text = 'IP Adress')
+        self.trv_device.column(4, width = 200, anchor ='c') # Headings of respective columns
+        self.trv_device.heading(4, text = 'Device Type')
+        self.trv_device.column(5, width = 230, anchor ='c') # Headings of respective columns
+        self.trv_device.heading(5, text = 'Last Modify')
         global count
         count = 0
         for data in getAlldevice(self.user):
             count = count + 1
             lst = [count,data['Name'],data['IP'],data['Type'],data['Last_Modify']]
-            self.trv.insert("",'end',iid=data['IP'],values=lst)
+            self.trv_device.insert("",'end',iid=data['IP'],values=lst)
 
-        self.trv.bind("<Double-1>", self.deviceInfo)
-        vs = ttk.Scrollbar(self.list_device,orient='vertical',command=self.trv.yview)
-        # vs.pack(side= RIGHT, fill= Y)
+        self.trv_device.bind("<Double-1>", self.deviceInfo)
+        vs = ttk.Scrollbar(self.list_device,orient='vertical',command=self.trv_device.yview)
         vs.grid(row=1,column=3, sticky= 'ns',pady= 20)
-        self.trv.config(yscrollcommand= vs.set)
+        self.trv_device.config(yscrollcommand= vs.set)
         
     def add_device(self):
         # Toplevel object which will be treated as a new window
         newWindow = Toplevel(self.window)
         # sets the title of the Toplevel widget
         newWindow.title("Add Device")
-        newWindow.resizable(False,False)
+        newWindow.resizable(False, False)
         # sets the geometry of toplevel
-        newWindow.geometry("450x500")
-        #image
+        newWindow.geometry("450x550")
+        # image
         device_img = PhotoImage(file='images/device.png')
-        device_info = Label(newWindow, image= device_img, height= 100)
+        device_info = Label(newWindow, image=device_img, height=100)
         device_info.pack()
-        device_info.place(x=130, y= 20)
+        device_info.place(x=130, y=20)
         # A Label widget to show in toplevel
         en1 = StringVar()
         en2 = StringVar()
         en3 = StringVar()
+        en4 = StringVar()
         en5 = StringVar()
         en6 = StringVar()
+        en7 = StringVar()
+        en8 = StringVar()
 
-        Label(newWindow, text="Name",font=("arial",12)).place(x=40, y=140)  
-        Entry(newWindow,width=25, font=("arial",12),textvariable = en1).place(x=200, y=140)  
-  
-        Label(newWindow, text="IP Address", font=("arial",12)).place(x=40, y=180)  
-        Entry(newWindow, width=25, font=("arial",12), textvariable = en2).place(x=200, y=180) 
-  
-        Label(newWindow, text="Description",font=("arial",12)).place(x=40, y=220)  
-        Entry(newWindow,width=25, font=("arial",12),textvariable = en3).place(x=200, y=220)  
+        Label(newWindow, text="Host Name", font=("arial", 12)).place(x=40, y=140)
+        Entry(newWindow, width=25, font=("arial", 12),textvariable=en1).place(x=200, y=140)
 
-        Label(newWindow, text="Select Device",font=("arial",12)).place(x=40,y=260) 
-        type_of_devices = ("Router", "Switch")  
-        cv = StringVar()  
-        cv.set("Router") 
-        en4= OptionMenu(newWindow, cv, *type_of_devices)  
-        en4.config(width=20)    
-        en4.place(x=200, y=260)  
-  
-        Label(newWindow, text="SSH Username",font=("arial",12)).place(x=40, y=300)  
-        Entry(newWindow, width=25, font=("arial",12), textvariable = en5).place(x=200, y=300)  
-  
-        Label(newWindow, text="SSH Password",font=("arial",12)).place(x=40, y=340)  
-        Entry(newWindow,show='*', width=25, font=("arial",12), textvariable = en6).place(x=200, y=340)
-        
-        def check_empty():
-            # User = db.User.find({"Username" : self.user['Username'], "Password":self.user['Password']}).collection
-            # collection = User['Devices']
-            # print(collection)
-            if db.devices.find_one({ "IP" : en2.get()}):
-                lb = Label(newWindow, text="IP address had already used", fg='red', font=('Arial',11,'bold'))
-                lb.place(x=100, y=360)
-            elif en1.get() and en2.get() and en3.get() and cv.get() and en5.get() and en6.get():
-                global count
-                count = count + 1
-                lst = [count,en1.get(),en2.get(),cv.get(),datetime.today()]
-                self.trv.insert("",'end',iid=en2.get(),values=lst)
-                savedevice(self.user,en1.get(), en2.get(), en3.get(), cv.get(), en5.get(), en6.get(), datetime.today())
-                newWindow.destroy()
-                
-            else:
-                lb = Label(newWindow, text="Device Information can not be left blank", fg='red', font=('Arial',11,'bold'))
-                lb.place(x=100, y=360)
+        Label(newWindow, text="IP Address", font=("arial", 12)).place(x=40, y=180)
+        Entry(newWindow, width=25, font=("arial", 12),textvariable=en2).place(x=200, y=180)
 
-        Button(newWindow, text="ADD", width=30, command=check_empty).place(x=100,y=400)
+        Label(newWindow, text="Subnet Mask", font=("arial", 12)).place(x=40, y=220)
+        Entry(newWindow, width=25, font=("arial", 12),textvariable=en3).place(x=200, y=220)
+
+        Label(newWindow, text="Description", font=("arial", 12)).place(x=40, y=260)
+        Entry(newWindow, width=25, font=("arial", 12),textvariable=en4).place(x=200, y=260)
+
+        Label(newWindow, text="Select Device",font=("arial", 12)).place(x=40, y=300)
+        type_of_devices = ("Router", "Switch")
+        en5.set("Router")
+        menu = OptionMenu(newWindow, en5, *type_of_devices)
+        menu.config(width=20)
+        menu.place(x=200, y=300)
+
+        Label(newWindow, text="Username",font=("arial", 12)).place(x=40, y=340)
+        Entry(newWindow, width=25, font=("arial", 12),textvariable=en6).place(x=200, y=340)
+
+        Label(newWindow, text="Password",font=("arial", 12)).place(x=40, y=380)
+        Entry(newWindow, show='*', width=25, font=("arial", 12),textvariable=en7).place(x=200, y=380)
+
+        Label(newWindow, text="Enable Password",font=("arial", 12)).place(x=40, y=420)
+        Entry(newWindow, show='*', width=25, font=("arial", 12),textvariable=en8).place(x=200, y=420)
+
+        def check():
+            def subnet(net):
+                subnet = net.split(".")
+                if len(subnet) != 4: return True 
+                for o in subnet:
+                    if not o.isalnum() : return True
+                    if  256 <= int(o) or 0 > int(o) : return True
+                return False
+            try:
+                IPv4Address(en2.get())
+                if subnet(en3.get()):
+                    messagebox.showerror("Error", "Enter valid Subnet Mask Address" ,parent=newWindow)
+                elif db.devices.find_one({ "IP" : en2.get()}):
+                    messagebox.showerror("Error", "IP address had already used" ,parent=newWindow)
+                elif en1.get() and en2.get() and en3.get() and en4.get() and en5.get() and en6.get() and en7.get() and en8.get():
+                    global count
+                    count = count + 1
+                    lst = [count,en1.get(),en2.get(),en5.get(),datetime.today()]
+                    self.trv_device.insert("",'end',iid=en2.get(),values=lst)
+                    data = {
+                    "userID" : self.user["_id"],
+                    "Name": en1.get(),
+                    "IP": en2.get(),
+                    "Subnet" : en3.get(),
+                    "Description": en4.get(),
+                    "Type" : en5.get(),
+                    "Username" : en6.get(),
+                    "Password" : en7.get(),
+                    "Enable" : en8.get(),
+                    "Last_Modify" : datetime.today(),
+                    }
+                    savedevice(data)
+                    newWindow.destroy()      
+                else:
+                    messagebox.showerror("Error", "Device Information can not be left blank" ,parent=newWindow)
+            except AddressValueError as e:
+                messagebox.showerror("Error", e ,parent=newWindow)
+
+        Button(newWindow, text="ADD", width=30, command=check).place(x=100,y=480)
         newWindow.mainloop()
      
     def configWindow(self):
@@ -284,7 +306,20 @@ class Dashboard:
         Button(newWindow, text= 'Delete Device', width= 15,bg='red',command= deletedevice).place(x=290, y= 380)
 
         newWindow.mainloop()
-
+    
+    def output(self):
+        style = ttk.Style(self.list_output)
+        style.configure("Treeview", background="black", foreground="white")
+        self.trv_output = ttk.Treeview(self.list_output, selectmode = 'browse')
+        self.trv_output.grid(row=1,column=0,columnspan=3,padx=20,pady=20)
+        self.trv_output['height']=10 # Number of rows to display, default is 10
+        self.trv_output['show'] = 'headings' 
+        self.trv_output["columns"] = [1] # column identifiers 
+        self.trv_output.column(1, width = 950, anchor ='c') 
+        vs = ttk.Scrollbar(self.list_output,orient='vertical',command=self.trv_output.yview)
+        vs.grid(row=1,column=3, sticky= 'ns',pady= 20)
+        self.trv_output.config(yscrollcommand= vs.set)
+        
 
 if __name__ == '__main__':
     collection = db.User

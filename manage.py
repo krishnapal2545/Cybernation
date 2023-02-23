@@ -4,17 +4,7 @@ client = MongoClient ('localhost', 27017)
 
 db = client.Cybernation
 
-def savedevice(user,name,ip, desc, dtype, ssh_u, ssh_p, LM):
-    data = {
-        "userID" : user["_id"],
-        "Name": name,
-        "IP": ip,
-        "Description": desc,
-        "Type" : dtype,
-        "Username" : ssh_u,
-        "Password" : ssh_p,
-        "Last_Modify" : LM,
-    }
+def savedevice(data):
     collection = db.devices
     collection.insert_one(data)
     
