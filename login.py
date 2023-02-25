@@ -98,13 +98,13 @@ class Register():
         self.password = StringVar()
         self.very_pass = StringVar()
         
-        Entry(self.window, width=40 , textvariable = self.first_name).place(x=200 , y=133)
-        Entry(self.window, width=40 , textvariable = self.last_name).place(x=200 , y=163)
-        ttk.Radiobutton(self.window,text='Male', value="Male", variable = self.var).place(x= 200 , y= 190)
-        ttk.Radiobutton(self.window,text='Female', value="Female", variable = self.var).place(x= 260 , y= 190)
-        Entry(self.window, width=40 , textvariable = self.org).place(x=200 , y=223)
-        Entry(self.window, width=40,textvariable = self.user_name).place(x=200 , y=253)
-        Entry(self.window, width=40, textvariable = self.password).place(x=200 , y=283)
+        Entry(self.window, width=40 ,textvariable = self.first_name).place(x=200 , y=133)
+        Entry(self.window, width=40 ,textvariable = self.last_name).place(x=200 , y=163)
+        ttk.Radiobutton(self.window ,text='Male', value="Male", variable = self.var).place(x= 200 , y= 190)
+        ttk.Radiobutton(self.window ,text='Female', value="Female", variable = self.var).place(x= 260 , y= 190)
+        Entry(self.window, width=40 ,textvariable = self.org).place(x=200 , y=223)
+        Entry(self.window, width=40 ,textvariable = self.user_name).place(x=200 , y=253)
+        Entry(self.window, width=40 ,show="*" ,textvariable = self.password).place(x=200 , y=283)
         Entry(self.window, width=40 ,show="*" , textvariable = self.very_pass).place(x=200 , y=313)
 
 	    # button login and clear

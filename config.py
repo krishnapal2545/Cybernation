@@ -1,14 +1,23 @@
 import telnetlib
 import time
 from pprint import pprint
+from tkinter import ttk, messagebox
 
+def Notsubnet(net):
+    subnet = net.split(".")
+    if len(subnet) != 4: return True 
+    for o in subnet:
+        if not o.isalnum() : return True
+        if  256 <= int(o) or 0 > int(o) : return True
+    return False
 
 def to_bytes(line): return f"{line}\n".encode("utf-8")
 
-def typeconfig(name):
+def typeconfig(config):
+    name = config['Name']
     if name == 'Static Routing':
         staticRouting = ["configure terminal",
-                     f"ip route {config['IP']} {config['SubIP']} {config['NextHop']}", "end"]
+                     f"ip route {config['Dest-IP']} {config['Dest-SubIP']} {config['NextHop']}", "end"]
         return staticRouting
     elif name == 'RIP Routing':
         ripRouting = ["configure terminal", "router rip", f"version {config['version']}",
@@ -21,7 +30,7 @@ def typeconfig(name):
     else:
         return []
 
-def routing(config):
+def routing(config, window):
     try:
         with telnetlib.Telnet(config['IP']) as telnet:
             telnet.read_until(b"Username")
@@ -40,7 +49,7 @@ def routing(config):
             telnet.read_very_eager()
 
             result = {}
-            commands = typeconfig(config['Name'])
+            commands = typeconfig(config)
             for command in commands:
                 telnet.write(to_bytes(command))
                 output = telnet.read_until(b"#", timeout=5).decode("utf-8")
@@ -49,8 +58,8 @@ def routing(config):
             output = telnet.read_until(b"#", timeout=5).decode("utf-8")
             result["show running-config"] = output.replace("\r\n", "\n")
             pprint(result, width=120)
-    except:
-        print("Error")
+    except TimeoutError as e:
+        messagebox.showerror("Error", e ,parent=window)
 
 
 if __name__ == "__main__":

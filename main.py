@@ -5,6 +5,7 @@ from datetime import *
 import time
 from manage import *
 from ipaddress import *
+from config import *
 
 
 class Dashboard:
@@ -200,18 +201,10 @@ class Dashboard:
         Entry(newWindow, show='*', width=25, font=("arial", 12),textvariable=en8).place(x=200, y=420)
 
         def check():
-            def subnet(net):
-                subnet = net.split(".")
-                if len(subnet) != 4: return True 
-                for o in subnet:
-                    if not o.isalnum() : return True
-                    if  256 <= int(o) or 0 > int(o) : return True
-                return False
             try:
                 IPv4Address(en2.get())
-                if subnet(en3.get()):
-                    messagebox.showerror("Error", "Enter valid Subnet Mask Address" ,parent=newWindow)
-                elif db.devices.find_one({ "IP" : en2.get()}):
+                IPv4Address(en3.get())
+                if db.devices.find_one({ "IP" : en2.get()}):
                     messagebox.showerror("Error", "IP address had already used" ,parent=newWindow)
                 elif en1.get() and en2.get() and en3.get() and en4.get() and en5.get() and en6.get() and en7.get() and en8.get():
                     global count
@@ -234,7 +227,7 @@ class Dashboard:
                     newWindow.destroy()      
                 else:
                     messagebox.showerror("Error", "Device Information can not be left blank" ,parent=newWindow)
-            except AddressValueError as e:
+            except ValueError as e:
                 messagebox.showerror("Error", e ,parent=newWindow)
 
         Button(newWindow, text="ADD", width=30, command=check).place(x=100,y=480)
@@ -294,12 +287,13 @@ class Dashboard:
         Label(newWindow,text=data['Last_Modify'],font=("arial",12),bg='white').place(x=180, y=320)
 
         # Button for operation
-        Button(newWindow, text= 'New Configuration', width= 15,bg='light blue', command= self.configWindow).place(x=30, y= 380)
+        Button(newWindow, text= 'New Configuration', width= 15,bg='light blue', 
+               command= lambda: Configuration(newWindow, data)).place(x=30, y= 380)
         Button(newWindow, text= 'Old Configuration', width= 15,bg='light green').place(x=160, y= 380)
 
         def deletedevice():
             IP = self.trv_device.selection()[0]
-            self.trv_device.delete(self.trv.selection())
+            self.trv_device.delete(self.trv_device.selection())
             deleteDevice(IP)
             newWindow.destroy()
         Button(newWindow, text= 'Delete Device', width= 15,bg='red',command= deletedevice).place(x=290, y= 380)
@@ -316,6 +310,63 @@ class Dashboard:
         vs = ttk.Scrollbar(self.list_output,orient='vertical',command=self.trv_output.yview)
         vs.grid(row=1,column=3, sticky= 'ns',pady= 20)
         self.trv_output.config(yscrollcommand= vs.set)
+
+
+class Configuration:
+
+    def __init__(self, window, device):
+        self.device = device
+        self.window = Toplevel(window)
+        self.window.title("Device New Configuration")
+        self.window.resizable(False,False)
+        self.window.geometry("430x450")
+        self.window.configure(bg='white')
+        self.window.grab_set()
+        
+        #image
+        device_img = PhotoImage(file='images\device.png')
+        device_info = Label(self.window, image= device_img, bg='white')
+        device_info.pack()
+        device_info.place(x=130, y= 20)
+
+        Label(self.window, text="Configurations :- ", font='Verdana 15 bold', bg='white').place(x=10, y=150)
+        
+        Button(self.window, width= 15, height= 3, text="Default Routing", bg="#FF33B2").place(x = 50,  y= 200)
+        Button(self.window, width= 15, height= 3, text="Static Routing",  bg="#33FFE9", command= self.staticRouting).place(x = 250, y= 200)
+        Button(self.window, width= 15, height= 3, text="RIP Routing",     bg="#A533FF").place(x = 50,  y= 275)
+        Button(self.window, width= 15, height= 3, text="OSPF Routing",    bg="#ff1111").place(x = 250, y= 275)
+        Button(self.window, width= 15, height= 3, text="BGP Routing",     bg="#33FF5B").place(x = 50,  y= 350)
+        Button(self.window, width= 15, height= 3, text="EIGRP Routing",   bg="#E9FF33").place(x = 250, y= 350)
+        
+        self.window.mainloop()
+    
+    def staticRouting(self):
+        newWindow = Toplevel(self.window)
+        newWindow.title("Static Routing")
+        newWindow.geometry("600x200")
+
+        # heading label
+        Label(newWindow, text="Destination Network Address :",font='Verdana 10 bold').place(x=40, y= 80)
+        Label(newWindow, text="Destination Network Subnet Mask :",font='Verdana 10 bold').place(x=40, y= 130 )
+        Label(newWindow, text="Next Hop :",font='Verdana 10 bold').place(x=40, y= 180)
+
+        # Entry Box
+        destIP = StringVar()
+        destSub = StringVar()
+        nextHop = StringVar()
+
+        Entry(newWindow, width=40, textvariable= destIP).place(x=250, y=80)
+        Entry(newWindow, width=40, textvariable= destSub).place(x=250, y=130)
+        Entry(newWindow, width=40, textvariable= nextHop).place(x=250, y=180)
+
+        # # button login and clear
+
+        Button(newWindow, text="Config",font='Verdana 10 bold').place(x= 250, y=200)
+
+        newWindow.mainloop()
+
+
+
 
 
 if __name__ == '__main__':
