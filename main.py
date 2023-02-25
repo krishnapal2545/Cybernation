@@ -43,13 +43,12 @@ class Dashboard:
         # ==============================================================================
 
         # date and Time
-        self.clock_image = ImageTk.PhotoImage(file="images/time.png")
-        self.date_time_image = Label(
-            self.sidebar, image=self.clock_image, bg="white")
-        self.date_time_image.place(x=88, y=20)
+        self.clock_image = PhotoImage(file="images/time.png")
+        self.date_time_image = Label(self.sidebar, image=self.clock_image, bg="white")
+        self.date_time_image.place(x=75, y=30)
 
         self.date_time = Label(self.window)
-        self.date_time.place(x=115, y=15)
+        self.date_time.place(x=105, y=25)
         self.show_time()
 
         # logo
@@ -247,6 +246,7 @@ class Dashboard:
         newWindow.resizable(False,False)
         newWindow.geometry("430x450")
         newWindow.configure(bg='white')
+        newWindow.grab_set()
         
         #image
         device_img = PhotoImage(file='images\device.png')
@@ -263,17 +263,17 @@ class Dashboard:
         Button(newWindow, width= 15, height= 3, text="BGP Routing",     bg="#33FF5B").place(x = 50,  y= 350)
         Button(newWindow, width= 15, height= 3, text="EIGRP Routing",   bg="#E9FF33").place(x = 250, y= 350)
         
-
         newWindow.mainloop()
 
-    def deviceInfo(self,event):
-        IP = self.trv.selection()[0]
+    def deviceInfo(self,event): 
+        IP = self.trv_device.selection()[0]
         data = getdevice(IP)
         newWindow = Toplevel(self.window)
         newWindow.title("Device Information")
         newWindow.resizable(False,False)
         newWindow.geometry("430x450")
         newWindow.configure(bg='white')
+        newWindow.grab_set()
         
         #image
         device_img = PhotoImage(file='images\device.png')
@@ -298,18 +298,15 @@ class Dashboard:
         Button(newWindow, text= 'Old Configuration', width= 15,bg='light green').place(x=160, y= 380)
 
         def deletedevice():
-            IP = self.trv.selection()[0]
-            self.trv.delete(self.trv.selection())
+            IP = self.trv_device.selection()[0]
+            self.trv_device.delete(self.trv.selection())
             deleteDevice(IP)
             newWindow.destroy()
-
         Button(newWindow, text= 'Delete Device', width= 15,bg='red',command= deletedevice).place(x=290, y= 380)
 
         newWindow.mainloop()
     
     def output(self):
-        style = ttk.Style(self.list_output)
-        style.configure("Treeview", background="black", foreground="white")
         self.trv_output = ttk.Treeview(self.list_output, selectmode = 'browse')
         self.trv_output.grid(row=1,column=0,columnspan=3,padx=20,pady=20)
         self.trv_output['height']=10 # Number of rows to display, default is 10
@@ -319,7 +316,7 @@ class Dashboard:
         vs = ttk.Scrollbar(self.list_output,orient='vertical',command=self.trv_output.yview)
         vs.grid(row=1,column=3, sticky= 'ns',pady= 20)
         self.trv_output.config(yscrollcommand= vs.set)
-        
+
 
 if __name__ == '__main__':
     collection = db.User

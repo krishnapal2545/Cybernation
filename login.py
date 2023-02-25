@@ -11,6 +11,7 @@ class Login():
         self.window.title("CyberNation")
         self.window.maxsize(width=500,  height=500)
         self.window.minsize(width=500,  height=500)
+        # self.window.config(background='white')
 
         # Window Icon Photo
         icon = PhotoImage(file='images\\icon.png')

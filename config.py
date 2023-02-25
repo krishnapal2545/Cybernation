@@ -21,7 +21,6 @@ def typeconfig(name):
     else:
         return []
 
-
 def routing(config):
     try:
         with telnetlib.Telnet(config['IP']) as telnet:
