@@ -3,13 +3,6 @@ import time
 from pprint import pprint
 from tkinter import ttk, messagebox
 
-def Notsubnet(net):
-    subnet = net.split(".")
-    if len(subnet) != 4: return True 
-    for o in subnet:
-        if not o.isalnum() : return True
-        if  256 <= int(o) or 0 > int(o) : return True
-    return False
 
 def to_bytes(line): return f"{line}\n".encode("utf-8")
 
@@ -58,6 +51,7 @@ def routing(config, window):
             output = telnet.read_until(b"#", timeout=5).decode("utf-8")
             result["show running-config"] = output.replace("\r\n", "\n")
             pprint(result, width=120)
+            return result
     except TimeoutError as e:
         messagebox.showerror("Error", e ,parent=window)
 

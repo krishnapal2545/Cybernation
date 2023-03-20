@@ -110,8 +110,8 @@ class Dashboard:
         self.devices()
 
         # Body Frame 2
-        self.output()
-        
+        self.output({})
+    
     def show_time(self):
         self.time = time.strftime("%H:%M:%S")
         self.date = time.strftime('%Y/%m/%d')
@@ -148,7 +148,7 @@ class Dashboard:
         vs = ttk.Scrollbar(self.list_device,orient='vertical',command=self.trv_device.yview)
         vs.grid(row=1,column=3, sticky= 'ns',pady= 20)
         self.trv_device.config(yscrollcommand= vs.set)
-        
+    
     def add_device(self):
         # Toplevel object which will be treated as a new window
         newWindow = Toplevel(self.window)
@@ -232,7 +232,7 @@ class Dashboard:
 
         Button(newWindow, text="ADD", width=30, command=check).place(x=100,y=480)
         newWindow.mainloop()
-     
+    
     def configWindow(self):
         newWindow = Toplevel(self.window)
         newWindow.title("Device New Configuration")
@@ -300,19 +300,23 @@ class Dashboard:
 
         newWindow.mainloop()
     
-    def output(self):
+    def output(self, result):
         self.trv_output = ttk.Treeview(self.list_output, selectmode = 'browse')
         self.trv_output.grid(row=1,column=0,columnspan=3,padx=20,pady=20)
         self.trv_output['height']=10 # Number of rows to display, default is 10
         self.trv_output['show'] = 'headings' 
         self.trv_output["columns"] = [1] # column identifiers 
-        self.trv_output.column(1, width = 950, anchor ='c') 
+        self.trv_output.column(1, width = 950, anchor ='w') 
         vs = ttk.Scrollbar(self.list_output,orient='vertical',command=self.trv_output.yview)
         vs.grid(row=1,column=3, sticky= 'ns',pady= 20)
         self.trv_output.config(yscrollcommand= vs.set)
 
+        for data in result:
+            data = ' ' + data + ' $ ' + result[data]
+            lst = [data]
+            self.trv_output.insert("",'end',values=lst)
 
-class Configuration:
+class Configuration (Dashboard):
 
     def __init__(self, window, device):
         self.device = device
@@ -343,30 +347,49 @@ class Configuration:
     def staticRouting(self):
         newWindow = Toplevel(self.window)
         newWindow.title("Static Routing")
-        newWindow.geometry("600x200")
-
+        newWindow.resizable(False, False)
+        newWindow.geometry("480x250")
+        newWindow.config(background="black")
+        
         # heading label
-        Label(newWindow, text="Destination Network Address :",font='Verdana 10 bold').place(x=40, y= 80)
-        Label(newWindow, text="Destination Network Subnet Mask :",font='Verdana 10 bold').place(x=40, y= 130 )
-        Label(newWindow, text="Next Hop :",font='Verdana 10 bold').place(x=40, y= 180)
-
+        Label(newWindow, text="Destination Network Address :",font='Verdana 10 bold', foreground= "white", bg="black").place(x=20, y= 40)
+        Label(newWindow, text="Destination Subnet Mask :",font='Verdana 10 bold', foreground= "white", bg="black").place(x=20, y= 90 )
+        Label(newWindow, text="Next Hop :",font='Verdana 10 bold',foreground= "white", bg="black").place(x=20, y= 140)
+        
         # Entry Box
         destIP = StringVar()
         destSub = StringVar()
         nextHop = StringVar()
-
-        Entry(newWindow, width=40, textvariable= destIP).place(x=250, y=80)
-        Entry(newWindow, width=40, textvariable= destSub).place(x=250, y=130)
-        Entry(newWindow, width=40, textvariable= nextHop).place(x=250, y=180)
-
-        # # button login and clear
-
-        Button(newWindow, text="Config",font='Verdana 10 bold').place(x= 250, y=200)
-
+        
+        Entry(newWindow, width=20, textvariable= destIP,font='Verdana 10 bold').place(x=270, y=40)
+        Entry(newWindow, width=20, textvariable= destSub,font='Verdana 10 bold').place(x=270, y=90)
+        Entry(newWindow, width=20, textvariable= nextHop,font='Verdana 10 bold').place(x=270, y=140)
+        
+        def check():
+            try:
+                IPv4Network(destIP.get())
+                IPv4Address(destSub.get())
+                IPv4Address(nextHop.get())
+                
+                config = {
+                    'deviceID' : '00oekd',
+                    'Name':'Static Routing',
+                    'Username': 'admin',
+                    'Password': 'cisco',
+                    'Enable': 'cisco',
+                    'IP': '192.168.10.5',
+                    'Dest-IP': destIP.get(),
+                    'Dest-SubIP': destSub.get(),
+                    'NextHop': nextHop.get(),
+                    'Last_Modify': datetime.today()
+                    }
+                self.output(routing(config, newWindow))
+            except ValueError as e:
+                messagebox.showerror("Error", e ,parent=newWindow)
+                
+        # # button config
+        Button(newWindow, text="Config",font='Verdana 10 bold', width= 30, bg="#33FFE9", command= check).place(x= 100, y= 200)
         newWindow.mainloop()
-
-
-
 
 
 if __name__ == '__main__':
@@ -375,3 +398,5 @@ if __name__ == '__main__':
     window = Tk()
     Dashboard(window,x)
     window.mainloop()
+
+

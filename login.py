@@ -119,16 +119,15 @@ class Register():
             messagebox.showerror("Error" , "Password & Confirm Password Should Be Same" , parent = self.window)
         else:
             try:
-                messagebox.showinfo("Success" , "Ragistration Successfull" , parent = self.window)
                 saveUser(self.first_name.get(),self.last_name.get(),self.var.get(),self.org.get(),self.user_name.get(),self.password.get())
+                messagebox.showinfo("Success" , "Ragistration Successfull" , parent = self.window)
                 self.switch()
             except Exception as es:
-                messagebox.showerror("Error" , f"Error Dui to : {str(es)}", parent = self.window)
+                messagebox.showerror("Error" , f"Error do to : {str(es)}", parent = self.window)
 
     def switch(self):
         self.window.destroy()
         Login()
-
 
 if __name__ == '__main__':
     Login()
