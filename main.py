@@ -2,7 +2,7 @@ from tkinter import *
 from tkinter import ttk, messagebox
 from PIL import ImageTk, Image, ImageDraw
 from datetime import *
-import time
+import time, sqlite3
 from manage import *
 from ipaddress import *
 from config import *
@@ -36,8 +36,9 @@ class Dashboard:
 
         # body frame 2
         Label(self.window, text='Output', font=("", 15, "bold"), fg='white', bg='black', width=20).place(x=325, y= 410)
-        self.list_output = Frame(self.window, bg='black')
-        self.list_output.place(x=325, y= 440, width= 1020, height=260)
+        global list_output
+        list_output = Frame(self.window, bg='black')
+        list_output.place(x=325, y= 440, width= 1020, height=260)
 
         # ==============================================================================
         # ================== SIDEBAR ===================================================
@@ -53,28 +54,28 @@ class Dashboard:
         self.show_time()
 
         # logo
-        gender = user['Gender']
+        gender = user[3]
         self.logoImage = ImageTk.PhotoImage(file=f'images/{gender}.png')
         self.logo = Label(self.sidebar, image=self.logoImage, bg='#ffffff').place(x=60, y=80)
 
         # Name of brand/person
-        uname = user['Fname'] + ' '+ user ['Lname']
+        uname = user[1] + ' '+ user [2]
         self.Username = Label(self.sidebar, text= uname, bg='#ffffff', font=("", 15, "bold")).place(x=80, y=240)
 
         #Gender
         self.gen_img = PhotoImage(file='images/gender.png').subsample(2,2)
         Label(self.sidebar, image= self.gen_img, bg='#ffffff').place(x=30, y= 290)
-        Label(self.sidebar, text= user['Gender'], bg='#ffffff', font='Verdana 11 ').place(x=80,y=290)
+        Label(self.sidebar, text= user[3], bg='#ffffff', font='Verdana 11 ').place(x=80,y=290)
 
         #Organi
         self.org_img = PhotoImage(file='images/org.png').subsample(2,2)
         Label(self.sidebar, image= self.org_img, bg='#ffffff').place(x=30, y= 330)
-        Label(self.sidebar, text= user['Org'], bg='#ffffff', font='Verdana 11 ').place(x=80,y=330)
+        Label(self.sidebar, text= user[4], bg='#ffffff', font='Verdana 11 ').place(x=80,y=330)
 
         #Contact
         self.contact_img = PhotoImage(file='images/contact.png').subsample(2,2)
         Label(self.sidebar, image= self.contact_img, bg='#ffffff').place(x=30, y= 370)
-        Label(self.sidebar, text= '8318031071', bg='#ffffff', font='Verdana 11').place(x=80,y=370)
+        Label(self.sidebar, text= user[5], bg='#ffffff', font='Verdana 11').place(x=80,y=370)
         
         # Separator object
         separator = ttk.Separator(self.sidebar, orient='horizontal')
@@ -111,6 +112,8 @@ class Dashboard:
 
         # Body Frame 2
         self.output({})
+
+        self.window.mainloop()
     
     def show_time(self):
         self.time = time.strftime("%H:%M:%S")
@@ -141,8 +144,8 @@ class Dashboard:
         count = 0
         for data in getAlldevice(self.user):
             count = count + 1
-            lst = [count,data['Name'],data['IP'],data['Type'],data['Last_Modify']]
-            self.trv_device.insert("",'end',iid=data['IP'],values=lst)
+            lst = [count,data[2],data[3],data[6],data[10]]
+            self.trv_device.insert("",'end',iid=data[3],values=lst)
 
         self.trv_device.bind("<Double-1>", self.deviceInfo)
         vs = ttk.Scrollbar(self.list_device,orient='vertical',command=self.trv_device.yview)
@@ -204,15 +207,11 @@ class Dashboard:
             try:
                 IPv4Address(en2.get())
                 IPv4Address(en3.get())
-                if db.devices.find_one({ "IP" : en2.get()}):
+                if conn.cursor().execute("SELECT IP FROM Devices WHERE IP = ?",(str(en2.get()),)).fetchone():
                     messagebox.showerror("Error", "IP address had already used" ,parent=newWindow)
-                elif en1.get() and en2.get() and en3.get() and en4.get() and en5.get() and en6.get() and en7.get() and en8.get():
-                    global count
-                    count = count + 1
-                    lst = [count,en1.get(),en2.get(),en5.get(),datetime.today()]
-                    self.trv_device.insert("",'end',iid=en2.get(),values=lst)
+                elif en1.get() and en2.get() and en3.get() and en4.get() and en5.get() and en6.get() and en7.get() and en8.get():  
                     data = {
-                    "userID" : self.user["_id"],
+                    "userID" : self.user[0],
                     "Name": en1.get(),
                     "IP": en2.get(),
                     "Subnet" : en3.get(),
@@ -224,6 +223,11 @@ class Dashboard:
                     "Last_Modify" : datetime.today(),
                     }
                     savedevice(data)
+                    global count
+                    count = count + 1
+                    lst = [count,en1.get(),en2.get(),en5.get(),datetime.today()]
+                    self.trv_device.insert("",'end',iid=en2.get(),values=lst)
+                    messagebox.showinfo("Success" , "Device Added Successfull" , parent = newWindow)
                     newWindow.destroy()      
                 else:
                     messagebox.showerror("Error", "Device Information can not be left blank" ,parent=newWindow)
@@ -232,32 +236,7 @@ class Dashboard:
 
         Button(newWindow, text="ADD", width=30, command=check).place(x=100,y=480)
         newWindow.mainloop()
-    
-    def configWindow(self):
-        newWindow = Toplevel(self.window)
-        newWindow.title("Device New Configuration")
-        newWindow.resizable(False,False)
-        newWindow.geometry("430x450")
-        newWindow.configure(bg='white')
-        newWindow.grab_set()
-        
-        #image
-        device_img = PhotoImage(file='images\device.png')
-        device_info = Label(newWindow, image= device_img, bg='white')
-        device_info.pack()
-        device_info.place(x=130, y= 20)
-
-        Label(newWindow, text="Configurations :- ", font='Verdana 15 bold', bg='white').place(x=10, y=150)
-        
-        Button(newWindow, width= 15, height= 3, text="Default Routing", bg="#FF33B2").place(x = 50,  y= 200)
-        Button(newWindow, width= 15, height= 3, text="Static Routing",  bg="#33FFE9").place(x = 250, y= 200)
-        Button(newWindow, width= 15, height= 3, text="RIP Routing",     bg="#A533FF").place(x = 50,  y= 275)
-        Button(newWindow, width= 15, height= 3, text="OSPF Routing",    bg="#ff1111").place(x = 250, y= 275)
-        Button(newWindow, width= 15, height= 3, text="BGP Routing",     bg="#33FF5B").place(x = 50,  y= 350)
-        Button(newWindow, width= 15, height= 3, text="EIGRP Routing",   bg="#E9FF33").place(x = 250, y= 350)
-        
-        newWindow.mainloop()
-
+     
     def deviceInfo(self,event): 
         IP = self.trv_device.selection()[0]
         data = getdevice(IP)
@@ -276,15 +255,15 @@ class Dashboard:
         
         # A Label widget to show in toplevel
         Label(newWindow, text="Name : ",font=("arial",12),bg='white').place(x = 40,y = 160)  
-        Label(newWindow, text= data['Name'], font=("arial",12),bg='white').place(x= 180, y=160) 
+        Label(newWindow, text= data[2], font=("arial",12),bg='white').place(x= 180, y=160) 
         Label(newWindow, text="IP Address : ", font=("arial",12),bg='white').place(x=40, y=200)  
-        Label(newWindow,text= data['IP'], font=("arial",12),bg='white').place(x=180, y=200)
+        Label(newWindow,text= data[3], font=("arial",12),bg='white').place(x=180, y=200)
         Label(newWindow, text="Description : ", font=("arial",12),bg='white').place(x=40, y=240)   
-        Label(newWindow,text= data['Description'], font=("arial",12),bg='white').place(x=180, y=240)
+        Label(newWindow,text= data[5], font=("arial",12),bg='white').place(x=180, y=240)
         Label(newWindow, text="SSH Username : ", font=("arial",12),bg='white').place(x=40, y=280)  
-        Label(newWindow,text= data['Username'],font=("arial",12),bg='white').place(x=180, y=280)
+        Label(newWindow,text= data[7],font=("arial",12),bg='white').place(x=180, y=280)
         Label(newWindow,text="Last Modify : ",font=("arial",12),bg='white').place(x = 40,y= 320)
-        Label(newWindow,text=data['Last_Modify'],font=("arial",12),bg='white').place(x=180, y=320)
+        Label(newWindow,text=data[10],font=("arial",12),bg='white').place(x=180, y=320)
 
         # Button for operation
         Button(newWindow, text= 'New Configuration', width= 15,bg='light blue', 
@@ -301,13 +280,14 @@ class Dashboard:
         newWindow.mainloop()
     
     def output(self, result):
-        self.trv_output = ttk.Treeview(self.list_output, selectmode = 'browse')
+        global list_output
+        self.trv_output = ttk.Treeview(list_output, selectmode = 'browse')
         self.trv_output.grid(row=1,column=0,columnspan=3,padx=20,pady=20)
         self.trv_output['height']=10 # Number of rows to display, default is 10
         self.trv_output['show'] = 'headings' 
         self.trv_output["columns"] = [1] # column identifiers 
         self.trv_output.column(1, width = 950, anchor ='w') 
-        vs = ttk.Scrollbar(self.list_output,orient='vertical',command=self.trv_output.yview)
+        vs = ttk.Scrollbar(list_output,orient='vertical',command=self.trv_output.yview)
         vs.grid(row=1,column=3, sticky= 'ns',pady= 20)
         self.trv_output.config(yscrollcommand= vs.set)
 
@@ -372,12 +352,12 @@ class Configuration (Dashboard):
                 IPv4Address(nextHop.get())
                 
                 config = {
-                    'deviceID' : '00oekd',
+                    'deviceID' : self.device[0],
                     'Name':'Static Routing',
-                    'Username': 'admin',
-                    'Password': 'cisco',
-                    'Enable': 'cisco',
-                    'IP': '192.168.10.5',
+                    'Username': self.device[7],
+                    'Password': self.device[8],
+                    'Enable': self.device[9],
+                    'IP': self.device[3],
                     'Dest-IP': destIP.get(),
                     'Dest-SubIP': destSub.get(),
                     'NextHop': nextHop.get(),
@@ -393,10 +373,7 @@ class Configuration (Dashboard):
 
 
 if __name__ == '__main__':
-    collection = db.User
-    x = collection.find_one({"Username": "kk_pl", "Password":"K2545" })
-    window = Tk()
-    Dashboard(window,x)
-    window.mainloop()
+    cursor.execute("SELECT * FROM Users WHERE Username = 'kk_pl' AND Password = 'K2545' ;")
+    Dashboard(Tk(),cursor.fetchone())
 
 

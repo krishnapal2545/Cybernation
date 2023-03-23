@@ -49,16 +49,15 @@ class Login():
             messagebox.showerror("Error","Enter User Name And Password",parent=self.window)
         else:
             try:
-                user = db.User.find_one({"Username" : self.user_name.get(), "Password":self.password.get()})
+                user = cursor.execute("SELECT * FROM Users WHERE Username = ? AND Password = ?",(str(self.user_name.get()),str(self.password.get()),)).fetchone()
                 if user==None:
                     messagebox.showerror("Error" , "Invalid User Name And Password", parent = self.window)
                     self.clear()
                 else:
-                    messagebox.showinfo("Success" , "Successfully Login" , parent = self.window)
                     self.window.destroy()
                     Dashboard(Tk(),user)
             except Exception as es:
-                messagebox.showerror("Error" , f"Error Dui to : {str(es)}", parent = self.window)
+                messagebox.showerror("Error" , f"Error Do to : {str(es)}", parent = self.window)
 
     def switch(self):
         self.window.destroy()
@@ -84,14 +83,15 @@ class Register():
         Label(self.window, text= "Last Name :" , font='Verdana 10 bold').place(x=70,y=160)
         Label(self.window, text= "Gender :" , font='Verdana 10 bold').place(x=70,y=190)
         Label(self.window, text= "Organization :" , font='Verdana 10 bold').place(x=70,y=220)
-        Label(self.window, text= "User Name :" , font='Verdana 10 bold').place(x=70,y=250)
-        Label(self.window, text= "Password :" , font='Verdana 10 bold').place(x=70,y=280)
-        Label(self.window, text= "Verify Password:" , font='Verdana 10 bold').place(x=70,y=310)
+        Label(self.window, text= "Contact No.:" , font='Verdana 10 bold').place(x=70,y=250)
+        Label(self.window, text= "User Name :" , font='Verdana 10 bold').place(x=70,y=280)
+        Label(self.window, text= "Password :" , font='Verdana 10 bold').place(x=70,y=310)
+        Label(self.window, text= "Verify Password:" , font='Verdana 10 bold').place(x=70,y=340)
 
 	    # Entry Box ------------------------------------------------------------------
         self.first_name = StringVar()
         self.last_name = StringVar()
-        # self.age = IntVar()
+        self.phone = IntVar()
         self.var= StringVar()
         self.org = StringVar()
         self.user_name = StringVar()
@@ -103,12 +103,13 @@ class Register():
         ttk.Radiobutton(self.window ,text='Male', value="Male", variable = self.var).place(x= 200 , y= 190)
         ttk.Radiobutton(self.window ,text='Female', value="Female", variable = self.var).place(x= 260 , y= 190)
         Entry(self.window, width=40 ,textvariable = self.org).place(x=200 , y=223)
-        Entry(self.window, width=40 ,textvariable = self.user_name).place(x=200 , y=253)
-        Entry(self.window, width=40 ,show="*" ,textvariable = self.password).place(x=200 , y=283)
-        Entry(self.window, width=40 ,show="*" , textvariable = self.very_pass).place(x=200 , y=313)
+        Entry(self.window, width=40 ,textvariable = self.phone).place(x=200 , y=253)
+        Entry(self.window, width=40 ,textvariable = self.user_name).place(x=200 , y=283)
+        Entry(self.window, width=40 ,show="*" ,textvariable = self.password).place(x=200 , y=313)
+        Entry(self.window, width=40 ,show="*" , textvariable = self.very_pass).place(x=200 , y=343)
 
 	    # button login and clear
-        Button(self.window, text = "Signup", width= 15 ,font='Verdana 10 bold', command = self.register).place(x=200, y=363)
+        Button(self.window, text = "Signup", width= 15 ,font='Verdana 10 bold', command = self.register).place(x=200, y=383)
         Button(self.window , text="Switch To Login" , command = self.switch ).place(x=350 , y =20)
         self.window.mainloop()
 
@@ -119,7 +120,7 @@ class Register():
             messagebox.showerror("Error" , "Password & Confirm Password Should Be Same" , parent = self.window)
         else:
             try:
-                saveUser(self.first_name.get(),self.last_name.get(),self.var.get(),self.org.get(),self.user_name.get(),self.password.get())
+                saveUser(self.first_name.get(),self.last_name.get(),self.var.get(),self.org.get(),self.phone.get(),self.user_name.get(),self.password.get())
                 messagebox.showinfo("Success" , "Ragistration Successfull" , parent = self.window)
                 self.switch()
             except Exception as es:
