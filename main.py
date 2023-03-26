@@ -241,7 +241,7 @@ class Dashboard:
         IP = self.trv_device.selection()[0]
         data = getdevice(IP)
         newWindow = Toplevel(self.window)
-        newWindow.title("Device Information")
+        newWindow.title("Device Summary")
         newWindow.resizable(False,False)
         newWindow.geometry("430x450")
         newWindow.configure(bg='white')
@@ -301,7 +301,7 @@ class Configuration (Dashboard):
     def __init__(self, window, device):
         self.device = device
         self.window = Toplevel(window)
-        self.window.title("Device New Configuration")
+        self.window.title("Add Configuration")
         self.window.resizable(False,False)
         self.window.geometry("430x450")
         self.window.configure(bg='white')
@@ -315,12 +315,11 @@ class Configuration (Dashboard):
 
         Label(self.window, text="Configurations :- ", font='Verdana 15 bold', bg='white').place(x=10, y=150)
         
-        Button(self.window, width= 15, height= 3, text="Default Routing", bg="#FF33B2").place(x = 50,  y= 200)
-        Button(self.window, width= 15, height= 3, text="Static Routing",  bg="#33FFE9", command= self.staticRouting).place(x = 250, y= 200)
-        Button(self.window, width= 15, height= 3, text="RIP Routing",     bg="#A533FF").place(x = 50,  y= 275)
-        Button(self.window, width= 15, height= 3, text="OSPF Routing",    bg="#ff1111").place(x = 250, y= 275)
-        Button(self.window, width= 15, height= 3, text="BGP Routing",     bg="#33FF5B").place(x = 50,  y= 350)
-        Button(self.window, width= 15, height= 3, text="EIGRP Routing",   bg="#E9FF33").place(x = 250, y= 350)
+        Button(self.window, width= 15, height= 3, text="Static Routing",  bg="#33FFE9", command= self.staticRouting).place(x = 50, y= 200)
+        Button(self.window, width= 15, height= 3, text="RIP Routing",     bg="#A533FF", command= self.ripRouting).place(x = 250,  y= 200)
+        Button(self.window, width= 15, height= 3, text="OSPF Routing",    bg="#ff1111", command= self.ospfRouting).place(x = 50, y= 275)
+        Button(self.window, width= 15, height= 3, text="BGP Routing",     bg="#33FF5B", command= self.bgpRouting).place(x = 250,  y= 275)
+        Button(self.window, width= 15, height= 3, text="EIGRP Routing",   bg="#E9FF33", command= self.eigrpRouting).place(x = 50, y= 350)
         
         self.window.mainloop()
     
@@ -370,6 +369,92 @@ class Configuration (Dashboard):
         # # button config
         Button(newWindow, text="Config",font='Verdana 10 bold', width= 30, bg="#33FFE9", command= check).place(x= 100, y= 200)
         newWindow.mainloop()
+
+    def ripRouting(self):
+        newWindow = Toplevel(self.window)
+        newWindow.title("RIP Routing")
+        newWindow.geometry("480x200")
+        newWindow.config(background="black")
+        
+        # heading label
+        Label(newWindow, text="Network IP Address :",font='Verdana 10 bold', foreground= "white", bg="black").place(x=30, y= 40)
+        Label(newWindow, text="Version :",font='Verdana 10 bold', foreground= "white", bg="black").place(x=30, y= 90 )
+
+        # Entry Box
+        networkIP = StringVar()
+        version = StringVar()
+
+        Entry(newWindow, width=20, textvariable= networkIP,font='Verdana 10 bold').place(x=250, y=40)
+        Entry(newWindow, width=20, textvariable= version,font='Verdana 10 bold').place(x=250, y=90)
+
+        def check():
+            try:
+                IPv4Network(networkIP.get())
+                config = {
+                    'deviceID' : self.device[0],
+                    'Name':'RIP Routing',
+                    'Username': self.device[7],
+                    'Password': self.device[8],
+                    'Enable': self.device[9],
+                    'IP': self.device[3],
+                    'Network-IP': networkIP.get(),
+                    'Version': version.get(),
+                    'Last_Modify': datetime.today()
+                    }
+                routing(config, newWindow)
+            except ValueError as e:
+                messagebox.showerror("Error", e ,parent=newWindow)
+
+        # # button config
+        Button(newWindow, text="Config",font='Verdana 10 bold', width= 30, bg="#A533FF", command= check).place(x= 100, y= 150)
+        newWindow.mainloop()
+    
+    def ospfRouting(self):
+        pass
+
+    def bgpRouting(self):
+        pass
+
+    def eigrpRouting(self):
+        newWindow = Toplevel(self.window)
+        newWindow.title("EIGRP Routing")
+        newWindow.geometry("480x200")
+        newWindow.config(background="black")
+        
+        # heading label
+        Label(newWindow, text="Network Address :",font='Verdana 10 bold', foreground= "white", bg="black").place(x=30, y= 40)
+        Label(newWindow, text="Autonomous-System No.:",font='Verdana 10 bold', foreground= "white", bg="black").place(x=30, y= 90 )
+
+        # Entry Box
+        networkIP = StringVar()
+        as_number = StringVar()
+
+        Entry(newWindow, width=20, textvariable= networkIP,font='Verdana 10 bold').place(x=250, y=40)
+        Entry(newWindow, width=20, textvariable= as_number,font='Verdana 10 bold').place(x=250, y=90)
+
+        def check():
+            try:
+                IPv4Network(networkIP.get())
+                config = {
+                    'deviceID' : self.device[0],
+                    'Name':'EIGRP Routing',
+                    'Username': self.device[7],
+                    'Password': self.device[8],
+                    'Enable': self.device[9],
+                    'IP': self.device[3],
+                    'Network-IP': networkIP.get(),
+                    'ASnumber': as_number.get(),
+                    'Last_Modify': datetime.today()
+                    }
+                routing(config, newWindow)
+            except ValueError as e:
+                messagebox.showerror("Error", e ,parent=newWindow)
+
+        # # button config
+        Button(newWindow, text="Config",font='Verdana 10 bold', width= 30, bg="#E9FF33", command= check).place(x= 100, y= 150)
+        newWindow.mainloop()
+
+
 
 
 if __name__ == '__main__':

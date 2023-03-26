@@ -7,29 +7,24 @@ from config import *
 from datetime import *
 
 newWindow = Tk()
-newWindow.title("Static Routing")
-newWindow.geometry("480x250")
+newWindow.title("EIGRP Routing")
+newWindow.geometry("480x200")
 newWindow.config(background="black")
 
 # heading label
-Label(newWindow, text="Destination Network Address :",font='Verdana 10 bold', foreground= "white", bg="black").place(x=20, y= 40)
-Label(newWindow, text="Destination Subnet Mask :",font='Verdana 10 bold', foreground= "white", bg="black").place(x=20, y= 90 )
-Label(newWindow, text="Next Hop :",font='Verdana 10 bold',foreground= "white", bg="black").place(x=20, y= 140)
+Label(newWindow, text="Network Address :",font='Verdana 10 bold', foreground= "white", bg="black").place(x=30, y= 40)
+Label(newWindow, text="Autonomous-System No.:",font='Verdana 10 bold', foreground= "white", bg="black").place(x=30, y= 90 )
 
 # Entry Box
-destIP = StringVar()
-destSub = StringVar()
-nextHop = StringVar()
+networkIP = StringVar()
+as_number = StringVar()
 
-Entry(newWindow, width=20, textvariable= destIP,font='Verdana 10 bold').place(x=270, y=40)
-Entry(newWindow, width=20, textvariable= destSub,font='Verdana 10 bold').place(x=270, y=90)
-Entry(newWindow, width=20, textvariable= nextHop,font='Verdana 10 bold').place(x=270, y=140)
+Entry(newWindow, width=20, textvariable= networkIP,font='Verdana 10 bold').place(x=250, y=40)
+Entry(newWindow, width=20, textvariable= as_number,font='Verdana 10 bold').place(x=250, y=90)
 
 def check():
     try:
-        IPv4Network(destIP.get())
-        IPv4Address(destSub.get())
-        IPv4Address(nextHop.get())
+        IPv4Network(networkIP.get())
 
         config = {
         'deviceID' : '00oekd',
@@ -38,9 +33,8 @@ def check():
         'Password': 'cisco',
         'Enable': 'cisco',
         'IP': '192.168.10.5',
-        'Dest-IP': destIP.get(),
-        'Dest-SubIP': destSub.get(),
-        'NextHop': nextHop.get(),
+        'Network-IP': networkIP.get(),
+        'Version': as_number.get(),
         'Last_Modify': datetime.today()
         }
         routing(config, newWindow)
@@ -50,5 +44,5 @@ def check():
 
 
 # # button config
-Button(newWindow, text="Config",font='Verdana 10 bold', width= 30, bg="#33FFE9", command= check).place(x= 100, y= 200)
+Button(newWindow, text="Config",font='Verdana 10 bold', width= 30, bg="#E9FF33", command= check).place(x= 100, y= 150)
 newWindow.mainloop()
