@@ -5,44 +5,37 @@ from manage import *
 from ipaddress import *
 from config import *
 from datetime import *
+import json
 
 newWindow = Tk()
-newWindow.title("EIGRP Routing")
-newWindow.geometry("480x200")
-newWindow.config(background="black")
+newWindow.title("Configuration History")
+newWindow.geometry("500x270")
+newWindow.config(background="white")
 
-# heading label
-Label(newWindow, text="Network Address :",font='Verdana 10 bold', foreground= "white", bg="black").place(x=30, y= 40)
-Label(newWindow, text="Autonomous-System No.:",font='Verdana 10 bold', foreground= "white", bg="black").place(x=30, y= 90 )
+trv_history = ttk.Treeview(newWindow, selectmode='browse')
+trv_history.grid(row=1, column=0, columnspan=3, padx=20, pady=20)
+trv_history['height'] = 10 # Number of rows to display, default is 10
+trv_history['show'] = 'headings'
+trv_history["columns"] = [1, 2, 3]  # column identifiers
+trv_history.column(1, width=80, anchor='c')
+trv_history.heading(1, text='Sr. No.')
+trv_history.column(2, width=150, anchor='c')
+trv_history.heading(2, text='Routing')
+trv_history.column(3, width=200, anchor='c')
+trv_history.heading(3, text='Last Modify')
 
-# Entry Box
-networkIP = StringVar()
-as_number = StringVar()
+count = 0
+for data in getconfig(3):
+    count = count + 1
+    dic = json.loads(data[2])
+    # print(dic)
+    lst = [count, 'kk', 'pl']
+    trv_history.insert("",'end',values=lst)
 
-Entry(newWindow, width=20, textvariable= networkIP,font='Verdana 10 bold').place(x=250, y=40)
-Entry(newWindow, width=20, textvariable= as_number,font='Verdana 10 bold').place(x=250, y=90)
-
-def check():
-    try:
-        IPv4Network(networkIP.get())
-
-        config = {
-        'deviceID' : '00oekd',
-        'Name':'Static Routing',
-        'Username': 'admin',
-        'Password': 'cisco',
-        'Enable': 'cisco',
-        'IP': '192.168.10.5',
-        'Network-IP': networkIP.get(),
-        'Version': as_number.get(),
-        'Last_Modify': datetime.today()
-        }
-        routing(config, newWindow)
-    except ValueError as e:
-        messagebox.showerror("Error", e ,parent=newWindow)
+# trv_history.bind("<Double-1>", deviceInfo)
+vs = ttk.Scrollbar(newWindow,orient='vertical',command=trv_history.yview)
+vs.grid(row=1,column=3, sticky= 'ns',pady= 20)
+trv_history.config(yscrollcommand= vs.set)
 
 
-
-# # button config
-Button(newWindow, text="Config",font='Verdana 10 bold', width= 30, bg="#E9FF33", command= check).place(x= 100, y= 150)
 newWindow.mainloop()
