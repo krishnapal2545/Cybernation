@@ -26,7 +26,7 @@ class Dashboard:
         self.header = Frame(self.window, bg='#009df4').place(x=300, y=0, width=1070, height=60)
 
         # ================== SIDEBAR ===================================================
-        self.sidebar = Frame(self.window, bg='#ffffff').place(x=0, y=0, width=300, height=750)
+        self.sidebar = Frame(self.window, bg='#ffffff').place(x=0, y=0, width=300, height=700)
 
         # ============= BODY ==========================================================
         # body frame 1
@@ -111,7 +111,23 @@ class Dashboard:
         self.devices()
 
         # Body Frame 2
-        self.output({})
+        config = {
+        'deviceID': 3,
+        'Name': 'Static Routing',
+        'Username': 'admin',
+        'Password': 'cisco',
+        'Enable': 'a223B',
+        'IP': '192.168.10.2',
+        'Dest-IP': '192.168.20.0',
+        'Dest-SubIP': '255.255.25.0',
+        'NextHop': '10.10.10.1',
+        'IP': '192.168.10.2',
+        'Dest-IP': '192.168.20.0',
+        'Dest-SubIP': '255.255.25.0',
+        'NextHop': '10.10.10.1',
+
+    }
+        self.output(config)
 
         self.window.mainloop()
     
@@ -266,9 +282,9 @@ class Dashboard:
         Label(newWindow,text=data[10],font=("arial",12),bg='white').place(x=180, y=320)
 
         # Button for operation
-        Button(newWindow, text= 'New Configuration', width= 15,bg='light blue', 
+        Button(newWindow, text= 'Add Configuration', width= 15,bg='light blue', 
                command= lambda: Configuration(newWindow, data)).place(x=30, y= 380)
-        Button(newWindow, text= 'Old Configuration', width= 15,bg='light green').place(x=160, y= 380)
+        Button(newWindow, text= 'Config History', width= 15,bg='light green').place(x=160, y= 380)
 
         def deletedevice():
             IP = self.trv_device.selection()[0]
@@ -287,14 +303,15 @@ class Dashboard:
         self.trv_output['show'] = 'headings' 
         self.trv_output["columns"] = [1] # column identifiers 
         self.trv_output.column(1, width = 950, anchor ='w') 
+        
+        for data in result:
+            data = ' ' + data + ' $ ' + str(result[data])
+            lst = [data]
+            self.trv_output.insert("",'end',values=lst)
+        
         vs = ttk.Scrollbar(list_output,orient='vertical',command=self.trv_output.yview)
         vs.grid(row=1,column=3, sticky= 'ns',pady= 20)
         self.trv_output.config(yscrollcommand= vs.set)
-
-        for data in result:
-            data = ' ' + data + ' $ ' + result[data]
-            lst = [data]
-            self.trv_output.insert("",'end',values=lst)
 
 class Configuration (Dashboard):
 
@@ -303,7 +320,7 @@ class Configuration (Dashboard):
         self.window = Toplevel(window)
         self.window.title("Add Configuration")
         self.window.resizable(False,False)
-        self.window.geometry("430x450")
+        self.window.geometry("420x300")
         self.window.configure(bg='white')
         self.window.grab_set()
         
@@ -313,13 +330,14 @@ class Configuration (Dashboard):
         device_info.pack()
         device_info.place(x=130, y= 20)
 
-        Label(self.window, text="Configurations :- ", font='Verdana 15 bold', bg='white').place(x=10, y=150)
+        Label(self.window, text="Configurations :- ", font='Verdana 15 bold', bg='white').place(x=30, y=150)
         
-        Button(self.window, width= 15, height= 3, text="Static Routing",  bg="#33FFE9", command= self.staticRouting).place(x = 50, y= 200)
-        Button(self.window, width= 15, height= 3, text="RIP Routing",     bg="#A533FF", command= self.ripRouting).place(x = 250,  y= 200)
-        Button(self.window, width= 15, height= 3, text="OSPF Routing",    bg="#ff1111", command= self.ospfRouting).place(x = 50, y= 275)
-        Button(self.window, width= 15, height= 3, text="BGP Routing",     bg="#33FF5B", command= self.bgpRouting).place(x = 250,  y= 275)
-        Button(self.window, width= 15, height= 3, text="EIGRP Routing",   bg="#E9FF33", command= self.eigrpRouting).place(x = 50, y= 350)
+        Button(self.window, width= 15, height= 3, text="Static Routing",  bg="#33FFE9", command= self.staticRouting).place(x = 30, y= 200)
+        Button(self.window, width= 15, height= 3, text="RIP Routing",     bg="#A533FF", command= self.ripRouting).place(x = 150,  y= 200)
+        Button(self.window, width= 15, height= 3, text="EIGRP Routing",   bg="#E9FF33", command= self.eigrpRouting).place(x = 270, y= 200)
+        # Button(self.window, width= 15, height= 3, text="OSPF Routing",    bg="#ff1111", command= self.ospfRouting).place(x = 50, y= 275)
+        # Button(self.window, width= 15, height= 3, text="BGP Routing",     bg="#33FF5B", command= self.bgpRouting).place(x = 250,  y= 275)
+       
         
         self.window.mainloop()
     
