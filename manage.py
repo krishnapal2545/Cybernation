@@ -69,10 +69,12 @@ def saveconfig(config):
     CREATE TABLE IF NOT EXISTS Configs(
         ID INTEGER PRIMARY KEY AUTOINCREMENT,
         DeviceID           TEXT     NOT NULL,
-        Config             TEXT     NOT NULL);''')
+        Name               TEXT     NOT NULL,
+        Config             TEXT     NOT NULL,
+        Last_Modify        DATETIME NOT NULL);''')
     conn.execute('''
-    INSERT INTO Configs (DeviceID, Config) 
-    VALUES(?,?)''', (str(config['deviceID']), str(config),))
+    INSERT INTO Configs (DeviceID, Name, Config, Last_Modify) 
+    VALUES(?,?,?,?)''', (str(config['deviceID']),str(config['Name']),str(config),str(config['Last_Modify']),))
 
     conn.execute('''
     UPDATE Devices SET Last_Modify = ? WHERE ID = ?''', (datetime.today(),str(config['deviceID']),))

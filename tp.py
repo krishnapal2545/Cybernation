@@ -25,14 +25,11 @@ trv_history.column(3, width=200, anchor='c')
 trv_history.heading(3, text='Last Modify')
 
 count = 0
-for data in getconfig(3):
+for data in getconfig(5):
     count = count + 1
-    dic = json.loads(data[2])
-    # print(dic)
-    lst = [count, 'kk', 'pl']
+    lst = [count, data[2], data[4]]
     trv_history.insert("",'end',values=lst)
 
-# trv_history.bind("<Double-1>", deviceInfo)
 vs = ttk.Scrollbar(newWindow,orient='vertical',command=trv_history.yview)
 vs.grid(row=1,column=3, sticky= 'ns',pady= 20)
 trv_history.config(yscrollcommand= vs.set)
