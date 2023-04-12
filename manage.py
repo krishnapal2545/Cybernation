@@ -12,13 +12,14 @@ def savedevice(data):
         ID INTEGER PRIMARY KEY AUTOINCREMENT,
         UserID         INTEGER  NOT NULL,
         Name           TEXT     NOT NULL,    
-        IP             TEXT     NOT NULL UNIQUE,
+        IP             TEXT     NOT NULL   UNIQUE,
         Subnet         TEXT     NOT NULL,
         Description    TEXT     NOT NULL,
         Type           TEXT     NOT NULL,
         Username       TEXT     NOT NULL,
         Password       TEXT     NOT NULL,
         Enable         TEXT     NOT NULL,
+        Device_Type    TEXT     NOT NULL  DEFAULT 'cisco_ios',
         Last_Modify    DATETIME NOT NULL);''')
 
     conn.execute('''

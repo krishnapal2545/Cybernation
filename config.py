@@ -1,4 +1,5 @@
 import telnetlib
+from netmiko import (ConnectHandler, NetmikoTimeoutException, NetmikoAuthenticationException)
 import time
 from manage import *
 from datetime import datetime
@@ -13,7 +14,7 @@ def typeconfig(config):
     name = config['Name']
     if name == 'Static Routing':
         staticRouting = ["configure terminal",
-                         f"ip route {config['Dest-IP']} {config['Dest-SubIP']} {config['NextHop']}", "end"]
+                         f"ip route {config['Network-IP']} {config['Network-SubIP']} {config['NextHop']}", "end"]
         return staticRouting
     elif name == 'RIP Routing':
         ripRouting = ["configure terminal", "router rip", f"version {config['Version']}",
@@ -23,6 +24,10 @@ def typeconfig(config):
         eigrpRouting = ["configure terminal",
                         f"router eigrp {config['ASnumber']}", f"network {config['Network-IP']}", "end"]
         return eigrpRouting
+    elif name == 'OSPF Routing':
+        ospfRouting = ["configure terminal",f"router ospf {config['Process-ID']}", 
+                       f"network {config['Network-IP']} {config['Network-SubIP']} area {config['Area']}", "end"]
+        return ospfRouting
     else:
         return []
 
@@ -60,17 +65,41 @@ def routing(config, window):
     except TimeoutError as e:
         messagebox.showerror("Error", e, parent=window)
 
+def netmikoRouting(config, window):
+    device = {
+        'device_type': config['Device_Type'],
+        'host': config['IP'],
+        'username': config['Username'],
+        'password': config['Password'],
+        'secret': config['Enable'],
+    }
+    result = {}
+    try:
+        with ConnectHandler(**device) as ssh:
+            ssh.enable()
+            commands = typeconfig(config)
+            for command in commands:
+                output = ssh.send_command(command)
+                result[command] = output
+        pprint(result, width=120)
+        saveconfig(config)
+        return result
+    except (NetmikoTimeoutException, NetmikoAuthenticationException) as error:
+        print(error)
+        messagebox.showerror("Error", error, parent=window)
+
 
 if __name__ == "__main__":
     config = {
         'deviceID': 3,
         'Name': 'Static Routing',
+        'Device_Type': 'cisco_ios',
         'Username': 'admin',
         'Password': 'cisco',
         'Enable': 'a223B',
         'IP': '192.168.10.2',
-        'Dest-IP': '192.168.20.0',
-        'Dest-SubIP': '255.255.25.0',
+        'Network-IP': '192.168.20.0',
+        'Network-SubIP': '255.255.25.0',
         'NextHop': '10.10.10.1',
         'Last_Modify': datetime.today()
     }

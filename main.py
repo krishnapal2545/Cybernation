@@ -121,8 +121,8 @@ class Dashboard:
         'Dest-IP': '192.168.20.0',
         'Dest-SubIP': '255.255.25.0',
         'NextHop': '10.10.10.1',
-        'IP': '192.168.10.2',
-        'Dest-IP': '192.168.20.0',
+        'IPppp': '192.168.10.2',
+        'Desppt-IP': '192.168.20.0',
         'Dest-SubIP': '255.255.25.0',
         'NextHop': '10.10.10.1',
 
@@ -306,7 +306,7 @@ class Dashboard:
         self.trv_output.column(1, width = 950, anchor ='w') 
         
         for data in result:
-            data = ' ' + data + ' $ ' + str(result[data])
+            data = ' ' + data + ' >>> ' + str(result[data])
             lst = [data]
             self.trv_output.insert("",'end',values=lst)
         
@@ -321,7 +321,7 @@ class Configuration (Dashboard):
         self.window = Toplevel(window)
         self.window.title("Add Configuration")
         self.window.resizable(False,False)
-        self.window.geometry("420x300")
+        self.window.geometry("530x300")
         self.window.configure(bg='white')
         self.window.grab_set()
         
@@ -336,8 +336,7 @@ class Configuration (Dashboard):
         Button(self.window, width= 15, height= 3, text="Static Routing",  bg="#33FFE9", command= self.staticRouting).place(x = 30, y= 200)
         Button(self.window, width= 15, height= 3, text="RIP Routing",     bg="#A533FF", command= self.ripRouting).place(x = 150,  y= 200)
         Button(self.window, width= 15, height= 3, text="EIGRP Routing",   bg="#E9FF33", command= self.eigrpRouting).place(x = 270, y= 200)
-        # Button(self.window, width= 15, height= 3, text="OSPF Routing",    bg="#ff1111", command= self.ospfRouting).place(x = 50, y= 275)
-        # Button(self.window, width= 15, height= 3, text="BGP Routing",     bg="#33FF5B", command= self.bgpRouting).place(x = 250,  y= 275)
+        Button(self.window, width= 15, height= 3, text="OSPF Routing",    bg="#9FFF5A", command= self.ospfRouting).place(x = 390, y= 200)
        
         
         self.window.mainloop()
@@ -345,6 +344,7 @@ class Configuration (Dashboard):
     def configHistory(window, device):
         newWindow = Toplevel(window)
         newWindow.title("Configuration History")
+        newWindow.resizable(False,False)
         newWindow.geometry("500x270")
         newWindow.config(background="white")
         
@@ -401,12 +401,13 @@ class Configuration (Dashboard):
                 config = {
                     'deviceID' : self.device[0],
                     'Name':'Static Routing',
+                    'Device_Type': self.device[10],
                     'Username': self.device[7],
                     'Password': self.device[8],
                     'Enable': self.device[9],
                     'IP': self.device[3],
-                    'Dest-IP': destIP.get(),
-                    'Dest-SubIP': destSub.get(),
+                    'Network-IP': destIP.get(),
+                    'Network-SubIP': destSub.get(),
                     'NextHop': nextHop.get(),
                     'Last_Modify': datetime.today()
                     }
@@ -421,6 +422,7 @@ class Configuration (Dashboard):
     def ripRouting(self):
         newWindow = Toplevel(self.window)
         newWindow.title("RIP Routing")
+        newWindow.resizable(False,False)
         newWindow.geometry("480x200")
         newWindow.config(background="black")
         
@@ -441,6 +443,7 @@ class Configuration (Dashboard):
                 config = {
                     'deviceID' : self.device[0],
                     'Name':'RIP Routing',
+                    'Device_Type': self.device[10],
                     'Username': self.device[7],
                     'Password': self.device[8],
                     'Enable': self.device[9],
@@ -458,14 +461,58 @@ class Configuration (Dashboard):
         newWindow.mainloop()
     
     def ospfRouting(self):
-        pass
-
-    def bgpRouting(self):
-        pass
+        newWindow = Toplevel(self.window)
+        newWindow.title("OSPF Routing")
+        newWindow.resizable(False,False)
+        newWindow.geometry("500x250")
+        newWindow.config(background="black")
+        
+        # heading label
+        Label(newWindow, text="Process ID :", font='Verdana 10 bold',foreground="white", bg="black").place(x=30, y=40)
+        Label(newWindow, text="Network IP Address :", font='Verdana 10 bold',foreground="white", bg="black").place(x=30, y=80)
+        Label(newWindow, text="Network Subnet Mask :", font='Verdana 10 bold',foreground="white", bg="black").place(x=30, y=120)
+        Label(newWindow, text="Area :", font='Verdana 10 bold',foreground="white", bg="black").place(x=30, y=160)
+        
+        # Entry Box
+        processID = StringVar()
+        networkIP = StringVar()
+        networkSub = StringVar()
+        area = StringVar()
+        
+        Entry(newWindow, width=20, textvariable= processID,font='Verdana 10 bold').place(x=250, y=40)
+        Entry(newWindow, width=20, textvariable=networkIP,font='Verdana 10 bold').place(x=250, y=80)
+        Entry(newWindow, width=20, textvariable=networkSub,font='Verdana 10 bold').place(x=250, y=120)
+        Entry(newWindow, width=20, textvariable= area,font='Verdana 10 bold').place(x=250, y=160)
+        
+        def check():
+            try:
+                IPv4Network(networkIP.get())
+                IPv4Address(networkSub.get())
+                config = {
+                'deviceID': self.device[0],
+                'Name': 'RIP Routing',
+                'Device_Type': self.device[10],
+                'Username': self.device[7],
+                'Password': self.device[8],
+                'Enable': self.device[9],
+                'IP': self.device[3],
+                'Network-IP': networkIP.get(),
+                'Network-SubIP': networkSub.get(),
+                'Process-ID':processID.get(),
+                'Area': area.get(),
+                'Last_Modify': datetime.today()
+                }
+                routing(config, newWindow)
+            except ValueError as e:
+                messagebox.showerror("Error", e, parent=newWindow)
+        # # button config
+        Button(newWindow, text="Config", font='Verdana 10 bold', width=30, bg="#9FFF5A", command=check).place(x=100, y= 210)
+        newWindow.mainloop()
 
     def eigrpRouting(self):
         newWindow = Toplevel(self.window)
         newWindow.title("EIGRP Routing")
+        newWindow.resizable(False,False)
         newWindow.geometry("480x200")
         newWindow.config(background="black")
         
@@ -486,6 +533,7 @@ class Configuration (Dashboard):
                 config = {
                     'deviceID' : self.device[0],
                     'Name':'EIGRP Routing',
+                    'Device_Type': self.device[10],
                     'Username': self.device[7],
                     'Password': self.device[8],
                     'Enable': self.device[9],

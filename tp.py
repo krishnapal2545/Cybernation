@@ -8,31 +8,50 @@ from datetime import *
 import json
 
 newWindow = Tk()
-newWindow.title("Configuration History")
-newWindow.geometry("500x270")
-newWindow.config(background="white")
+newWindow.title("OSPF Routing")
+newWindow.resizable(False,False)
+newWindow.geometry("500x250")
+newWindow.config(background="black")
 
-trv_history = ttk.Treeview(newWindow, selectmode='browse')
-trv_history.grid(row=1, column=0, columnspan=3, padx=20, pady=20)
-trv_history['height'] = 10 # Number of rows to display, default is 10
-trv_history['show'] = 'headings'
-trv_history["columns"] = [1, 2, 3]  # column identifiers
-trv_history.column(1, width=80, anchor='c')
-trv_history.heading(1, text='Sr. No.')
-trv_history.column(2, width=150, anchor='c')
-trv_history.heading(2, text='Routing')
-trv_history.column(3, width=200, anchor='c')
-trv_history.heading(3, text='Last Modify')
+# heading label
+Label(newWindow, text="Process ID :", font='Verdana 10 bold',foreground="white", bg="black").place(x=30, y=40)
+Label(newWindow, text="Network IP Address :", font='Verdana 10 bold',foreground="white", bg="black").place(x=30, y=80)
+Label(newWindow, text="Network Subnet Mask :", font='Verdana 10 bold',foreground="white", bg="black").place(x=30, y=120)
+Label(newWindow, text="Area :", font='Verdana 10 bold',foreground="white", bg="black").place(x=30, y=160)
 
-count = 0
-for data in getconfig(5):
-    count = count + 1
-    lst = [count, data[2], data[4]]
-    trv_history.insert("",'end',values=lst)
+# Entry Box
+processID = StringVar()
+networkIP = StringVar()
+networkSub = StringVar()
+area = StringVar()
 
-vs = ttk.Scrollbar(newWindow,orient='vertical',command=trv_history.yview)
-vs.grid(row=1,column=3, sticky= 'ns',pady= 20)
-trv_history.config(yscrollcommand= vs.set)
+Entry(newWindow, width=20, textvariable= processID,font='Verdana 10 bold').place(x=250, y=40)
+Entry(newWindow, width=20, textvariable=networkIP,font='Verdana 10 bold').place(x=250, y=80)
+Entry(newWindow, width=20, textvariable=networkSub,font='Verdana 10 bold').place(x=250, y=120)
+Entry(newWindow, width=20, textvariable= area,font='Verdana 10 bold').place(x=250, y=160)
 
+def check():
+    try:
+        IPv4Network(networkIP.get())
+        IPv4Address(networkSub.get())
+        # config = {
+        #         'deviceID': self.device[0],
+        #         'Name': 'RIP Routing',
+        #         'Device_Type': self.device[10],
+        #         'Username': self.device[7],
+        #         'Password': self.device[8],
+        #         'Enable': self.device[9],
+        #         'IP': self.device[3],
+        #         'Network-IP': networkIP.get(),
+        #         'Network-SubIP': networkSub.get(),
+        #         'Process-ID':processID.get(),
+        #         'Area': area.get(),
+        #         'Last_Modify': datetime.today()
+        # }
+        # routing(config, newWindow)
+    except ValueError as e:
+            messagebox.showerror("Error", e, parent=newWindow)
 
+# # button config
+Button(newWindow, text="Config", font='Verdana 10 bold', width=30, bg="#9FFF5A", command=check).place(x=100, y= 210)
 newWindow.mainloop()
