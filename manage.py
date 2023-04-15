@@ -19,7 +19,7 @@ def savedevice(data):
         Username       TEXT     NOT NULL,
         Password       TEXT     NOT NULL,
         Enable         TEXT     NOT NULL,
-        Device_Type    TEXT     NOT NULL  DEFAULT 'cisco_ios',
+        Device_Type    TEXT     NOT NULL  DEFAULT 'autodetect',
         Last_Modify    DATETIME NOT NULL);''')
 
     conn.execute('''

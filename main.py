@@ -36,9 +36,14 @@ class Dashboard:
 
         # body frame 2
         Label(self.window, text='Output', font=("", 15, "bold"), fg='white', bg='black', width=20).place(x=325, y= 410)
-        global list_output
-        list_output = Frame(self.window, bg='black')
-        list_output.place(x=325, y= 440, width= 1020, height=260)
+        self.list_output = Frame(self.window, bg='black')
+        self.list_output.place(x=325, y= 440, width= 1020, height=260)
+        global CLI
+        CLI = Text(self.list_output,state= "disabled", padx= 20, pady= 20, width= 114, height= 11)
+        CLI.place(x = 25, y= 25)
+        vs = ttk.Scrollbar(self.list_output,orient='vertical',command=CLI.yview)
+        vs.place(x = 990, y= 25, height= 220 )
+        CLI.config(yscrollcommand= vs.set)
 
         # ==============================================================================
         # ================== SIDEBAR ===================================================
@@ -111,22 +116,8 @@ class Dashboard:
         self.devices()
 
         # Body Frame 2
-        config = {
-        'deviceID': 3,
-        'Name': 'Static Routing',
-        'Username': 'admin',
-        'Password': 'cisco',
-        'Enable': 'a223B',
-        'IP': '192.168.10.2',
-        'Dest-IP': '192.168.20.0',
-        'Dest-SubIP': '255.255.25.0',
-        'NextHop': '10.10.10.1',
-        'IPppp': '192.168.10.2',
-        'Desppt-IP': '192.168.20.0',
-        'Dest-SubIP': '255.255.25.0',
-        'NextHop': '10.10.10.1',
-
-    }
+        config = "You will see all the activity done by you here in this window"
+        
         self.output(config)
 
         self.window.mainloop()
@@ -160,7 +151,7 @@ class Dashboard:
         count = 0
         for data in getAlldevice(self.user):
             count = count + 1
-            lst = [count,data[2],data[3],data[6],data[10]]
+            lst = [count,data[2],data[3],data[6],data[11]]
             self.trv_device.insert("",'end',iid=data[3],values=lst)
 
         self.trv_device.bind("<Double-1>", self.deviceInfo)
@@ -279,7 +270,7 @@ class Dashboard:
         Label(newWindow, text="SSH Username : ", font=("arial",12),bg='white').place(x=40, y=280)  
         Label(newWindow,text= data[7],font=("arial",12),bg='white').place(x=180, y=280)
         Label(newWindow,text="Last Modify : ",font=("arial",12),bg='white').place(x = 40,y= 320)
-        Label(newWindow,text=data[10],font=("arial",12),bg='white').place(x=180, y=320)
+        Label(newWindow,text=data[11],font=("arial",12),bg='white').place(x=180, y=320)
 
         # Button for operation
         Button(newWindow, text= 'Add Configuration', width= 15,bg='light blue', 
@@ -297,22 +288,11 @@ class Dashboard:
         newWindow.mainloop()
     
     def output(self, result):
-        global list_output
-        self.trv_output = ttk.Treeview(list_output, selectmode = 'browse')
-        self.trv_output.grid(row=1,column=0,columnspan=3,padx=20,pady=20)
-        self.trv_output['height']=10 # Number of rows to display, default is 10
-        self.trv_output['show'] = 'headings' 
-        self.trv_output["columns"] = [1] # column identifiers 
-        self.trv_output.column(1, width = 950, anchor ='w') 
-        
-        for data in result:
-            data = ' ' + data + ' >>> ' + str(result[data])
-            lst = [data]
-            self.trv_output.insert("",'end',values=lst)
-        
-        vs = ttk.Scrollbar(list_output,orient='vertical',command=self.trv_output.yview)
-        vs.grid(row=1,column=3, sticky= 'ns',pady= 20)
-        self.trv_output.config(yscrollcommand= vs.set)
+        global CLI
+        CLI.config(state="normal")
+        CLI.insert(END,result)
+        CLI.insert(END,'\n\n')
+        CLI.config(state="disabled")
 
 class Configuration (Dashboard):
 
@@ -321,7 +301,7 @@ class Configuration (Dashboard):
         self.window = Toplevel(window)
         self.window.title("Add Configuration")
         self.window.resizable(False,False)
-        self.window.geometry("530x300")
+        self.window.geometry("530x400")
         self.window.configure(bg='white')
         self.window.grab_set()
         
@@ -329,14 +309,16 @@ class Configuration (Dashboard):
         device_img = PhotoImage(file='images\device.png')
         device_info = Label(self.window, image= device_img, bg='white')
         device_info.pack()
-        device_info.place(x=130, y= 20)
+        device_info.place(x=170, y= 20)
 
-        Label(self.window, text="Configurations :- ", font='Verdana 15 bold', bg='white').place(x=30, y=150)
+        Label(self.window, text="Configurations : ", font='Verdana 15 bold', bg='white').place(x=30, y=150)
         
-        Button(self.window, width= 15, height= 3, text="Static Routing",  bg="#33FFE9", command= self.staticRouting).place(x = 30, y= 200)
-        Button(self.window, width= 15, height= 3, text="RIP Routing",     bg="#A533FF", command= self.ripRouting).place(x = 150,  y= 200)
-        Button(self.window, width= 15, height= 3, text="EIGRP Routing",   bg="#E9FF33", command= self.eigrpRouting).place(x = 270, y= 200)
-        Button(self.window, width= 15, height= 3, text="OSPF Routing",    bg="#9FFF5A", command= self.ospfRouting).place(x = 390, y= 200)
+        Button(self.window, width= 15, height= 3, text= "VLAN",          bg="#FF9191", command= self.vlan         ).place(x =210, y = 200)
+        if(device[6] == "Router"):
+            Button(self.window, width= 15, height= 3, text="Static Routing", bg="#33FFE9", command= self.staticRouting).place(x = 30, y = 270)
+            Button(self.window, width= 15, height= 3, text="RIP Routing",    bg="#A533FF", command= self.ripRouting   ).place(x =150, y = 270)
+            Button(self.window, width= 15, height= 3, text="EIGRP Routing",  bg="#E9FF33", command= self.eigrpRouting ).place(x =270, y = 270)
+            Button(self.window, width= 15, height= 3, text="OSPF Routing",   bg="#9FFF5A", command= self.ospfRouting  ).place(x =390, y = 270)
        
         
         self.window.mainloop()
@@ -369,6 +351,54 @@ class Configuration (Dashboard):
         vs = ttk.Scrollbar(newWindow,orient='vertical',command=trv_history.yview)
         vs.grid(row=1,column=3, sticky= 'ns',pady= 20)
         trv_history.config(yscrollcommand= vs.set)
+        newWindow.mainloop()
+
+    def vlan(self):
+        newWindow = Toplevel(self.window)
+        newWindow.title("Virtual LAN")
+        newWindow.resizable(False,False)
+        newWindow.geometry("500x250")
+        newWindow.config(background="black")
+
+        # heading label
+        Label(newWindow, text="VLAN ID :", font='Verdana 10 bold',foreground="white", bg="black").place(x=30, y=40)
+        Label(newWindow, text="Name :", font='Verdana 10 bold',foreground="white", bg="black").place(x=30, y=80)
+        Label(newWindow, text="Interface :", font='Verdana 10 bold',foreground="white", bg="black").place(x=30, y=120)
+
+        # Entry Box
+        vlanID = StringVar()
+        name = StringVar()
+        inter = StringVar()
+        
+        Entry(newWindow, width=20, textvariable= vlanID,font='Verdana 10 bold').place(x=250, y=40)
+        Entry(newWindow, width=20, textvariable=name,font='Verdana 10 bold').place(x=250, y=80)
+        Entry(newWindow, width=20, textvariable=inter,font='Verdana 10 bold').place(x=250, y=120)
+        
+        def check():
+            try:
+                if vlanID.get() and name.get() and inter.get():
+                    pass
+                    config = {
+                          'deviceID': self.device[0],
+                          'Name': 'VLAN',
+                          'Device_Type': self.device[10],
+                          'Username': self.device[7],
+                          'Password': self.device[8],
+                          'Enable': self.device[9],
+                          'IP': self.device[3],
+                          'Vlan-ID': vlanID.get(),
+                          'Vlan-Name': name.get(),
+                          'Interface-ID':inter.get(),
+                          'Last_Modify': datetime.today()
+                    }
+                    self.output(routing(config, newWindow))
+                else:
+                    messagebox.showerror("Error", "Information can not be left blank" ,parent=newWindow)
+            except ValueError as e:
+                messagebox.showerror("Error", e, parent=newWindow)
+
+    # # button config
+        Button(newWindow, text="Config", font='Verdana 10 bold', width=30, bg="#FF9191", command=check).place(x=100, y= 190)
         newWindow.mainloop()
 
     def staticRouting(self):
