@@ -1,11 +1,32 @@
-  # self.trv_output = ttk.Treeview(list_output, selectmode = 'browse')
-        # self.trv_output.grid(row=1,column=0,columnspan=3,padx=20,pady=20)
-        # self.trv_output['height']=10 # Number of rows to display, default is 10
-        # self.trv_output['show'] = 'headings' 
-        # self.trv_output["columns"] = [1] # column identifiers 
-        # self.trv_output.column(1, width = 950, anchor ='w') 
-        
-        # for data in result:
-        #     data = ' ' + data + ' >>> ' + str(result[data])
-        #     lst = [data]
-        #     self.trv_output.insert("",'end',values=lst)
+# def routing(config, window):
+#     try:
+#         with telnetlib.Telnet(config['IP']) as telnet:
+#             telnet.read_until(b"Username")
+#             telnet.write(to_bytes(config['Username']))
+#             telnet.read_until(b"Password")
+#             telnet.write(to_bytes(config['Password']))
+#             index, m, output = telnet.expect([b">", b"#"])
+#             if index == 0:
+#                 telnet.write(b"enable\n")
+#                 telnet.read_until(b"Password")
+#                 telnet.write(to_bytes(config['Enable']))
+#                 telnet.read_until(b"#", timeout=5)
+#             telnet.write(b"terminal length 0\n")
+#             telnet.read_until(b"#", timeout=5)
+#             time.sleep(3)
+#             telnet.read_very_eager()
+
+#             result = {}
+#             commands = typeconfig(config)
+#             for command in commands:
+#                 telnet.write(to_bytes(command))
+#                 output = telnet.read_until(b"#", timeout=5).decode("utf-8")
+#                 result[command] = output.replace("\r\n", "\n")
+#             telnet.write(to_bytes("show running-config"))
+#             output = telnet.read_until(b"#", timeout=5).decode("utf-8")
+#             result["show running-config"] = output.replace("\r\n", "\n")
+#             pprint(result, width=120)
+#             saveconfig(config)
+#             return result
+#     except TimeoutError as e:
+#         messagebox.showerror("Error", e, parent=window)
