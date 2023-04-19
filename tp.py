@@ -14,12 +14,11 @@ newWindow.grab_set()
 
 # Button for operation
 add = Menubutton(newWindow, text='Add Configuration', width= 17, height= 1, activebackground='light blue',
-                         bg='light blue',underline=4,relief='raised')
-        # , command=lambda: Configuration(newWindow, data))
+                         bg='light blue',relief= 'raised', borderwidth= 2)
 add.place(x=30, y=380)
 add.menu = Menu(add, tearoff=False)
 add["menu"] = add.menu
-add.menu.add_cascade(label="Create VLAN", command=lambda: Configuration.configHistory(newWindow, {}) )
+add.menu.add_cascade(label="Create VLAN", command=lambda: Configuration.vlan(newWindow, []) )
 add.menu.add_cascade(label="Static Routing", command=lambda: Configuration.configHistory(newWindow, {}) )
 add.menu.add_cascade(label="RIP Routing", command=lambda: Configuration.configHistory(newWindow, {}) )
 add.menu.add_cascade(label="EIGRP Routing", command=lambda: Configuration.configHistory(newWindow, {}) )

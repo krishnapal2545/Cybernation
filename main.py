@@ -2,7 +2,8 @@ from tkinter import *
 from tkinter import ttk, messagebox
 from PIL import ImageTk
 from datetime import *
-import sqlite3, time
+import sqlite3
+import time
 from ipaddress import *
 from netmiko import (ConnectHandler, SSHDetect, NetmikoTimeoutException,
                      NetmikoAuthenticationException)
@@ -82,7 +83,7 @@ class Database():
     def saveconfig(self, config):
         self.conn.execute('''
         INSERT INTO Configs (DeviceID, Name, Config, Last_Modify) 
-        VALUES(?,?,?,?)''', (str(config['deviceID']), str(config['Name']), str(config), str(config['Last_Modify']),))
+        VALUES(?,?,?,?)''', (str(config['deviceID']), str(config['Name']), str(config['Destination']), str(config['Last_Modify']),))
         self.conn.execute('''
         UPDATE Devices SET Last_Modify = ? WHERE ID = ?''', (datetime.today(), str(config['deviceID']),))
         self.conn.commit()
@@ -541,64 +542,67 @@ class Dashboard:
     def deviceInfo(self, event):
         IP = self.trv_device.selection()[0]
         data = Database().getdevice(IP)
-        newWindow = Toplevel(self.window)
-        newWindow.title("Device Summary")
-        newWindow.resizable(False, False)
-        newWindow.geometry("430x450")
-        newWindow.configure(bg='white')
-        newWindow.grab_set()
+        newWindow = Frame(self.window, bg='white')
+        newWindow.place(x=325, y=60, width=1020, height=340)
+        def back(): newWindow.destroy()
+        Button(newWindow, text='<- Back', width=10, bg='black',
+               fg='white', command=back).place(x=1, y=25)
 
-        # image
-        device_img = PhotoImage(file='images\device.png')
-        device_info = Label(newWindow, image=device_img, bg='white')
-        device_info.pack()
-        device_info.place(x=130, y=20)
+        inWindow = Frame(newWindow, padx=20, pady=20)
+        inWindow.place(x=450, y=20, width=550, height=300)
 
         # A Label widget to show in toplevel
         Label(newWindow, text="Name : ", font=(
-            "arial", 12), bg='white').place(x=40, y=160)
+            "arial", 12), bg='white').place(x=50, y=80)
         Label(newWindow, text=data[2], font=(
-            "arial", 12), bg='white').place(x=180, y=160)
+            "arial", 12), bg='white').place(x=180, y=80)
         Label(newWindow, text="IP Address : ", font=(
-            "arial", 12), bg='white').place(x=40, y=200)
+            "arial", 12), bg='white').place(x=50, y=120)
         Label(newWindow, text=data[3], font=(
-            "arial", 12), bg='white').place(x=180, y=200)
+            "arial", 12), bg='white').place(x=180, y=120)
         Label(newWindow, text="Description : ", font=(
-            "arial", 12), bg='white').place(x=40, y=240)
+            "arial", 12), bg='white').place(x=50, y=160)
         Label(newWindow, text=data[5], font=(
-            "arial", 12), bg='white').place(x=180, y=240)
-        Label(newWindow, text="SSH Username : ", font=(
-            "arial", 12), bg='white').place(x=40, y=280)
+            "arial", 12), bg='white').place(x=180, y=160)
+        Label(newWindow, text="Username : ", font=(
+            "arial", 12), bg='white').place(x=50, y=200)
         Label(newWindow, text=data[7], font=(
-            "arial", 12), bg='white').place(x=180, y=280)
+            "arial", 12), bg='white').place(x=180, y=200)
         Label(newWindow, text="Last Modify : ", font=(
-            "arial", 12), bg='white').place(x=40, y=320)
-        Label(newWindow, text=data[11], font=(
-            "arial", 12), bg='white').place(x=180, y=320)
+            "arial", 12), bg='white').place(x=50, y=240)
+        Label(newWindow, text=datetime.strptime(data[11], '%Y-%m-%d %H:%M:%S.%f').date(), font=(
+            "arial", 12), bg='white').place(x=180, y=240)
 
         # Button for operation
-        add = Menubutton(newWindow, text='Add Configuration', width= 17, height= 10, activebackground='light blue',
-                         bg='light blue',underline=4,relief='raised')
-        # , command=lambda: Configuration(newWindow, data))
-        add.place(x=30, y=380)
+        add = Menubutton(newWindow, text='Add Configuration', width=17, height=1, activebackground='light blue',
+                         bg='light blue', relief='raised', borderwidth=2)
+        add.place(x=50, y=290)
         add.menu = Menu(add, tearoff=False)
         add["menu"] = add.menu
-        add.menu.add_checkbutton(label="Static Routing", command=lambda: Configuration.configHistory(newWindow, data) )
-        
-        # Button(newWindow, text='Add Configuration', width=15, bg='light blue',
-            #    command=lambda: Configuration(newWindow, data)).place(x=30, y=380)
-        Button(newWindow, text='Config History', width=15, bg='light green',
-               command=lambda: Configuration.configHistory(newWindow, data)).place(x=160, y=380)
+        add.menu.add_cascade(
+            label="Create VLAN", command=lambda: Configuration(newWindow, data).vlan())
+        if(data[6] == 'Router'):
+            add.menu.add_cascade(label="Static Routing", command=lambda: Configuration(
+                newWindow, data).static())
+            add.menu.add_cascade(
+                label="RIP Routing", command=lambda: Configuration(newWindow, data).rip())
+            add.menu.add_cascade(
+                label="EIGRP Routing", command=lambda: Configuration(newWindow, data).eigrp())
+            add.menu.add_cascade(
+                label="OSPF Routing", command=lambda: Configuration(newWindow, data).ospf())
+
+        Button(newWindow, text='Configured History', width=15, bg='light green',
+               command=lambda: Configuration(newWindow, data).configHistory()).place(x=180, y=290)
 
         def delete():
             IP = self.trv_device.selection()[0]
             self.trv_device.delete(self.trv_device.selection())
             Database().deleteDevice(IP)
             newWindow.destroy()
-        Button(newWindow, text='Delete Device', width=15,
-               bg='red', command=delete).place(x=290, y=380)
+        Button(newWindow, text='Delete Device', width=14,
+               bg='red', command=delete).place(x=310, y=290)
 
-        newWindow.mainloop()
+        # newWindow.mainloop()
 
     def output(self, result):
         global CLI
@@ -612,93 +616,62 @@ class Configuration (Dashboard):
 
     def __init__(self, window, device):
         self.device = device
-        self.window = Toplevel(window)
-        self.window.title("Add Configuration")
-        self.window.resizable(False, False)
-        self.window.geometry("530x400")
-        self.window.configure(bg='white')
-        self.window.grab_set()
+        self.window = window
 
-        # image
-        device_img = PhotoImage(file='images\device.png')
-        device_info = Label(self.window, image=device_img, bg='white')
-        device_info.pack()
-        device_info.place(x=170, y=20)
-
-        Label(self.window, text="Configurations : ",
-              font='Verdana 15 bold', bg='white').place(x=30, y=150)
-
-        Button(self.window, width=15, height=3, text="VLAN",
-               bg="#FF9191", command=self.vlan).place(x=210, y=200)
-        if(device[6] == "Router"):
-            Button(self.window, width=15, height=3, text="Static Routing",
-                   bg="#33FFE9", command=self.staticRouting).place(x=30, y=270)
-            Button(self.window, width=15, height=3, text="RIP Routing",
-                   bg="#A533FF", command=self.ripRouting).place(x=150, y=270)
-            Button(self.window, width=15, height=3, text="EIGRP Routing",
-                   bg="#E9FF33", command=self.eigrpRouting).place(x=270, y=270)
-            Button(self.window, width=15, height=3, text="OSPF Routing",
-                   bg="#9FFF5A", command=self.ospfRouting).place(x=390, y=270)
-
-        self.window.mainloop()
-
-    def configHistory(window, device):
-        newWindow = Toplevel(window)
-        newWindow.title("Configuration History")
-        newWindow.resizable(False, False)
-        newWindow.geometry("500x270")
-        newWindow.config(background="white")
+    def configHistory(self):
+        newWindow = Frame(self.window, bg='black', padx=20, pady=20)
+        newWindow.place(x=450, y=20, width=550, height=300)
 
         trv_history = ttk.Treeview(newWindow, selectmode='browse')
-        trv_history.grid(row=1, column=0, columnspan=3, padx=20, pady=20)
-        trv_history['height'] = 10  # Number of rows to display, default is 10
+        trv_history.grid(row=1, column=0, columnspan=3, padx=10, pady=10)
+        trv_history['height'] = 11  # Number of rows to display, default is 10
         trv_history['show'] = 'headings'
-        trv_history["columns"] = [1, 2, 3]  # column identifiers
+        trv_history["columns"] = [1, 2, 3, 4]  # column identifiers
         trv_history.column(1, width=80, anchor='c')
         trv_history.heading(1, text='Sr. No.')
-        trv_history.column(2, width=150, anchor='c')
-        trv_history.heading(2, text='Routing')
-        trv_history.column(3, width=200, anchor='c')
-        trv_history.heading(3, text='Last Modify')
+        trv_history.column(2, width=120, anchor='c')
+        trv_history.heading(2, text='Configured')
+        trv_history.column(3, width=120, anchor='c')
+        trv_history.heading(3, text='Destination')
+        trv_history.column(4, width=150, anchor='c')
+        trv_history.heading(4, text='Last Modify')
 
         count = 0
-        for data in Database().getconfig(device[0]):
+        for data in Database().getconfig(self.device[0]):
             count = count + 1
-            lst = [count, data[2], data[4]]
+            lst = [count, data[2], data[3], datetime.strptime(
+                data[4], '%Y-%m-%d %H:%M:%S.%f').date()]
             trv_history.insert("", 'end', values=lst)
 
         vs = ttk.Scrollbar(newWindow, orient='vertical',
                            command=trv_history.yview)
-        vs.grid(row=1, column=3, sticky='ns', pady=20)
+        vs.grid(row=1, column=3, sticky='ns', pady=10)
         trv_history.config(yscrollcommand=vs.set)
-        newWindow.mainloop()
-    
-    def routing(self,config, window, commands):
+
+    def routing(self, config, window, commands):
         device = {
             'device_type': "autodetect",
             'host': config['IP'],
             'username': config['Username'],
             'password': config['Password'],
             'secret': config['Enable'],
-            }
+        }
         try:
             device['device_type'] = SSHDetect(**device).autodetect()
             with ConnectHandler(**device) as ssh:
                 # ssh.enable()
                 output = ssh.send_config_set(commands)
             Database().saveconfig(config)
+            messagebox.showinfo(
+                "Success", "Configured Successfully", parent=window)
             return output
         except (NetmikoTimeoutException, NetmikoAuthenticationException) as error:
-            messagebox.showerror("Error", error, parent= window)
-        return "-"*114
+            messagebox.showerror("Error", error, parent=window)
+            return error
 
     def vlan(self):
-        newWindow = Toplevel(self.window)
-        newWindow.title("Virtual LAN")
-        newWindow.resizable(False, False)
-        newWindow.geometry("500x250")
-        newWindow.config(background="black")
-
+        newWindow = Frame(self.window, bg='black', padx=20, pady=20)
+        newWindow.place(x=450, y=20, width=550, height=300)
         # heading label
         Label(newWindow, text="VLAN ID :", font='Verdana 10 bold',
               foreground="white", bg="black").place(x=30, y=40)
@@ -731,9 +704,7 @@ class Configuration (Dashboard):
                         'Password': self.device[8],
                         'Enable': self.device[9],
                         'IP': self.device[3],
-                        'Vlan-ID': vlanID.get(),
-                        'Vlan-Name': name.get(),
-                        'Interface-ID': inter.get(),
+                        'Destination': name.get(),
                         'Last_Modify': datetime.today()
                     }
                     vlan = [f"vlan {vlanID.get()}", f"name {name.get()}", "exit",
@@ -745,18 +716,13 @@ class Configuration (Dashboard):
             except ValueError as e:
                 messagebox.showerror("Error", e, parent=newWindow)
 
-    # # button config
+        # # button config
         Button(newWindow, text="Config", font='Verdana 10 bold',
-               width=30, bg="#FF9191", command=check).place(x=100, y=190)
-        newWindow.mainloop()
+               width=30, bg="light blue", command=check).place(x=120, y=230)
 
-    def staticRouting(self):
-        newWindow = Toplevel(self.window)
-        newWindow.title("Static Routing")
-        newWindow.resizable(False, False)
-        newWindow.geometry("480x250")
-        newWindow.config(background="black")
-
+    def static(self):
+        newWindow = Frame(self.window, bg='black', padx=20, pady=20)
+        newWindow.place(x=450, y=20, width=550, height=300)
         # heading label
         Label(newWindow, text="Destination Network Address :",
               font='Verdana 10 bold', foreground="white", bg="black").place(x=20, y=40)
@@ -785,33 +751,28 @@ class Configuration (Dashboard):
 
                 config = {
                     'deviceID': self.device[0],
-                    'Name': 'Static Routing',
+                    'Name': 'STATIC',
                     'Device_Type': self.device[10],
                     'Username': self.device[7],
                     'Password': self.device[8],
                     'Enable': self.device[9],
                     'IP': self.device[3],
-                    'Network-IP': destIP.get(),
-                    'Network-SubIP': destSub.get(),
-                    'NextHop': nextHop.get(),
+                    'Destination': destIP.get(),
                     'Last_Modify': datetime.today()
                 }
-                static = [f"ip route {destIP.get()} {destSub.get()} {nextHop.get()}"]
+                static = [
+                    f"ip route {destIP.get()} {destSub.get()} {nextHop.get()}"]
                 self.output(self.routing(config, newWindow, static))
             except ValueError as e:
                 messagebox.showerror("Error", e, parent=newWindow)
 
         # # button config
         Button(newWindow, text="Config", font='Verdana 10 bold',
-               width=30, bg="#33FFE9", command=check).place(x=100, y=200)
-        newWindow.mainloop()
+               width=30, bg="light blue", command=check).place(x=120, y=230)
 
-    def ripRouting(self):
-        newWindow = Toplevel(self.window)
-        newWindow.title("RIP Routing")
-        newWindow.resizable(False, False)
-        newWindow.geometry("480x200")
-        newWindow.config(background="black")
+    def rip(self):
+        newWindow = Frame(self.window, bg='black', padx=20, pady=20)
+        newWindow.place(x=450, y=20, width=550, height=300)
 
         # heading label
         Label(newWindow, text="Network IP Address :", font='Verdana 10 bold',
@@ -833,32 +794,28 @@ class Configuration (Dashboard):
                 IPv4Network(networkIP.get())
                 config = {
                     'deviceID': self.device[0],
-                    'Name': 'RIP Routing',
+                    'Name': 'RIP',
                     'Device_Type': self.device[10],
                     'Username': self.device[7],
                     'Password': self.device[8],
                     'Enable': self.device[9],
                     'IP': self.device[3],
-                    'Network-IP': networkIP.get(),
-                    'Version': version.get(),
+                    'Destination': networkIP.get(),
                     'Last_Modify': datetime.today()
                 }
-                rip = ["router rip", f"version {version.get()}",f"network {networkIP.get()}", "no auto-summary"]
+                rip = [
+                    "router rip", f"version {version.get()}", f"network {networkIP.get()}", "no auto-summary"]
                 self.output(self.routing(config, newWindow, rip))
             except ValueError as e:
                 messagebox.showerror("Error", e, parent=newWindow)
 
         # # button config
         Button(newWindow, text="Config", font='Verdana 10 bold',
-               width=30, bg="#A533FF", command=check).place(x=100, y=150)
-        newWindow.mainloop()
+               width=30, bg="light blue", command=check).place(x=120, y=230)
 
-    def eigrpRouting(self):
-        newWindow = Toplevel(self.window)
-        newWindow.title("EIGRP Routing")
-        newWindow.resizable(False, False)
-        newWindow.geometry("480x200")
-        newWindow.config(background="black")
+    def eigrp(self):
+        newWindow = Frame(self.window, bg='black', padx=20, pady=20)
+        newWindow.place(x=450, y=20, width=550, height=300)
 
         # heading label
         Label(newWindow, text="Network Address :", font='Verdana 10 bold',
@@ -880,32 +837,29 @@ class Configuration (Dashboard):
                 IPv4Network(networkIP.get())
                 config = {
                     'deviceID': self.device[0],
-                    'Name': 'EIGRP Routing',
+                    'Name': 'EIGRP',
                     'Device_Type': self.device[10],
                     'Username': self.device[7],
                     'Password': self.device[8],
                     'Enable': self.device[9],
                     'IP': self.device[3],
-                    'Network-IP': networkIP.get(),
-                    'ASnumber': as_number.get(),
+                    'Destination': networkIP.get(),
                     'Last_Modify': datetime.today()
                 }
-                eigrp = [f"router eigrp {as_number.get()}", f"network {networkIP.get()}"]
+                eigrp = [
+                    f"router eigrp {as_number.get()}", f"network {networkIP.get()}"]
                 self.output(self.routing(config, newWindow, eigrp))
             except ValueError as e:
                 messagebox.showerror("Error", e, parent=newWindow)
 
         # # button config
+        # # button config
         Button(newWindow, text="Config", font='Verdana 10 bold',
-               width=30, bg="#E9FF33", command=check).place(x=100, y=150)
-        newWindow.mainloop()
-    
-    def ospfRouting(self):
-        newWindow = Toplevel(self.window)
-        newWindow.title("OSPF Routing")
-        newWindow.resizable(False, False)
-        newWindow.geometry("500x250")
-        newWindow.config(background="black")
+               width=30, bg="light blue", command=check).place(x=120, y=230)
+
+    def ospf(self):
+        newWindow = Frame(self.window, bg='black', padx=20, pady=20)
+        newWindow.place(x=450, y=20, width=550, height=300)
 
         # heading label
         Label(newWindow, text="Process ID :", font='Verdana 10 bold',
@@ -938,32 +892,27 @@ class Configuration (Dashboard):
                 IPv4Address(networkSub.get())
                 config = {
                     'deviceID': self.device[0],
-                    'Name': 'OSPF Routing',
+                    'Name': 'OSPF',
                     'Device_Type': self.device[10],
                     'Username': self.device[7],
                     'Password': self.device[8],
                     'Enable': self.device[9],
                     'IP': self.device[3],
-                    'Network-IP': networkIP.get(),
-                    'Network-SubIP': networkSub.get(),
-                    'Process-ID': processID.get(),
-                    'Area': area.get(),
+                    'Destination': networkIP.get(),
                     'Last_Modify': datetime.today()
                 }
                 ospf = [f"router ospf {processID.get()}",
-                       f"network {networkIP.get()} {networkSub.get()} area {area.get()}"]
+                        f"network {networkIP.get()} {networkSub.get()} area {area.get()}"]
                 self.output(self.routing(config, newWindow, ospf))
             except ValueError as e:
                 messagebox.showerror("Error", e, parent=newWindow)
 
         # # button config
         Button(newWindow, text="Config", font='Verdana 10 bold',
-               width=30, bg="#9FFF5A", command=check).place(x=100, y=210)
-        newWindow.mainloop()
-
+               width=30, bg="light blue", command=check).place(x=120, y=230)
 
 
 if __name__ == '__main__':
 
-    Dashboard(Tk(),Database().getUser('kk_pl', 'K2545'))
+    Dashboard(Tk(), Database().getUser('kk_pl', 'K2545'))
     # Login()
