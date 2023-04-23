@@ -3,13 +3,13 @@ from tkinter import ttk, messagebox
 from PIL import ImageTk
 from datetime import *
 import sqlite3
-import time
+import time, threading
 from ipaddress import *
 from netmiko import (ConnectHandler, SSHDetect, NetmikoTimeoutException,
                      NetmikoAuthenticationException)
 
 
-class Database():
+class Database:
 
     def __init__(self):
         self.conn = sqlite3.connect('Cybernation.db')
@@ -94,7 +94,7 @@ class Database():
         return self.cursor.fetchall()
 
 
-class Register():
+class Register:
 
     def __init__(self):
         self.window = Tk()
@@ -185,7 +185,7 @@ class Register():
         Login()
 
 
-class Login():
+class Login:
 
     def __init__(self):
         self.window = Tk()
@@ -283,8 +283,8 @@ class Dashboard:
         # body frame 1
         Label(self.window, text='Dashboard', font=("", 15, "bold"),
               fg='black', bg='white', width=20).place(x=325, y=30)
-        self.list_device = Frame(self.window, bg='white')
-        self.list_device.place(x=325, y=60, width=1020, height=340)
+        self.frame1 = Frame(self.window, bg='white')
+        self.frame1.place(x=325, y=60, width=1020, height=340)
 
         # body frame 2
         Label(self.window, text='Output', font=("", 15, "bold"),
@@ -399,7 +399,7 @@ class Dashboard:
 
     def devices(self):
 
-        self.trv_device = ttk.Treeview(self.list_device, selectmode='browse')
+        self.trv_device = ttk.Treeview(self.frame1, selectmode='browse')
         self.trv_device.grid(row=1, column=0, columnspan=3, padx=20, pady=20)
         # Number of rows to display, default is 10
         self.trv_device['height'] = 14
@@ -428,24 +428,30 @@ class Dashboard:
             self.trv_device.insert("", 'end', iid=data[3], values=lst)
 
         self.trv_device.bind("<Double-1>", self.deviceInfo)
-        vs = ttk.Scrollbar(self.list_device, orient='vertical',
+        vs = ttk.Scrollbar(self.frame1, orient='vertical',
                            command=self.trv_device.yview)
         vs.grid(row=1, column=3, sticky='ns', pady=20)
         self.trv_device.config(yscrollcommand=vs.set)
 
     def add_device(self):
         # Toplevel object which will be treated as a new window
-        newWindow = Toplevel(self.window)
-        # sets the title of the Toplevel widget
-        newWindow.title("Add Device")
-        newWindow.resizable(False, False)
-        # sets the geometry of toplevel
-        newWindow.geometry("450x550")
+        newWindow = Frame(self.window, bg='white')
+        newWindow.place(x=325, y=60, width=1020, height=340)
+
+        def back():
+            newWindow.destroy()
+            bb.destroy()
+        Button(newWindow, text='<- Back', width=10, bg='black',
+               fg='white', command=back).place(x=1, y=25)
+
+        bb = Button(self.window, text="  Add Device", bg='#ffffff', font=("", 13, "bold"), bd=0, image=self.routerImage, compound=LEFT,
+                    cursor='hand2', activebackground='#ffffff')
+        bb.place(x=50, y=620)
         # image
         device_img = PhotoImage(file='images/device.png')
-        device_info = Label(newWindow, image=device_img, height=100)
+        device_info = Label(newWindow, image=device_img, bg='white')
         device_info.pack()
-        device_info.place(x=130, y=20)
+        device_info.place(x=420, y=15)
         # A Label widget to show in toplevel
         en1 = StringVar()
         en2 = StringVar()
@@ -456,48 +462,40 @@ class Dashboard:
         en7 = StringVar()
         en8 = StringVar()
 
-        Label(newWindow, text="Host Name", font=(
-            "arial", 12)).place(x=40, y=140)
-        Entry(newWindow, width=25, font=("arial", 12),
-              textvariable=en1).place(x=200, y=140)
+        Label(newWindow, text="Host Name", bg='white',
+              font=("arial", 12)).place(x=100, y=125)
+        Label(newWindow, text="IP Address", bg='white',
+              font=("arial", 12)).place(x=100, y=165)
+        Label(newWindow, text="Subnet Mask", bg='white',
+              font=("arial", 12)).place(x=100, y=205)
+        Label(newWindow, text="Description", bg='white',
+              font=("arial", 12)).place(x=100, y=245)
+        Entry(newWindow, width=20, bd=2, font=("arial", 12),
+              textvariable=en1).place(x=250, y=125)
+        Entry(newWindow, width=20, bd=2, font=("arial", 12),
+              textvariable=en2).place(x=250, y=165)
+        Entry(newWindow, width=20, bd=2, font=("arial", 12),
+              textvariable=en3).place(x=250, y=205)
+        Entry(newWindow, width=20, bd=2, font=("arial", 12),
+              textvariable=en4).place(x=250, y=245)
 
-        Label(newWindow, text="IP Address", font=(
-            "arial", 12)).place(x=40, y=180)
-        Entry(newWindow, width=25, font=("arial", 12),
-              textvariable=en2).place(x=200, y=180)
-
-        Label(newWindow, text="Subnet Mask", font=(
-            "arial", 12)).place(x=40, y=220)
-        Entry(newWindow, width=25, font=("arial", 12),
-              textvariable=en3).place(x=200, y=220)
-
-        Label(newWindow, text="Description", font=(
-            "arial", 12)).place(x=40, y=260)
-        Entry(newWindow, width=25, font=("arial", 12),
-              textvariable=en4).place(x=200, y=260)
-
-        Label(newWindow, text="Select Device",
-              font=("arial", 12)).place(x=40, y=300)
-        type_of_devices = ("Router", "Switch")
-        en5.set("Router")
-        menu = OptionMenu(newWindow, en5, *type_of_devices)
-        menu.config(width=20)
-        menu.place(x=200, y=300)
-
-        Label(newWindow, text="Username", font=(
-            "arial", 12)).place(x=40, y=340)
-        Entry(newWindow, width=25, font=("arial", 12),
-              textvariable=en6).place(x=200, y=340)
-
-        Label(newWindow, text="Password", font=(
-            "arial", 12)).place(x=40, y=380)
-        Entry(newWindow, show='*', width=25, font=("arial", 12),
-              textvariable=en7).place(x=200, y=380)
-
-        Label(newWindow, text="Enable Password",
-              font=("arial", 12)).place(x=40, y=420)
-        Entry(newWindow, show='*', width=25, font=("arial", 12),
-              textvariable=en8).place(x=200, y=420)
+        Label(newWindow, text="Device Type", bg='white',
+              font=("arial", 12)).place(x=550, y=125)
+        Label(newWindow, text="Username", bg='white',
+              font=("arial", 12)).place(x=550, y=165)
+        Label(newWindow, text="Password", bg='white',
+              font=("arial", 12)).place(x=550, y=205)
+        Label(newWindow, text="Enable Secret", bg='white',
+              font=("arial", 12)).place(x=550, y=245)
+        option = ['Router', 'Switch']
+        ttk.Combobox(newWindow, values=option, width=27,
+                     state='readonly', textvariable=en5).place(x=700, y=125)
+        Entry(newWindow, width=20,          bd=2, font=(
+            "arial", 12), textvariable=en6).place(x=700, y=165)
+        Entry(newWindow, show='*', width=20, bd=2, font=("arial", 12),
+              textvariable=en7).place(x=700, y=205)
+        Entry(newWindow, show='*', width=20, bd=2, font=("arial", 12),
+              textvariable=en8).place(x=700, y=245)
 
         def check():
             try:
@@ -535,8 +533,8 @@ class Dashboard:
             except ValueError as e:
                 messagebox.showerror("Error", e, parent=newWindow)
 
-        Button(newWindow, text="ADD", width=30,
-               command=check).place(x=100, y=480)
+        Button(newWindow, text="Add Device", width=40, command=check, bg='black',
+               fg='white', font=("arial", 12, "bold")).place(x=300, y=290)
         newWindow.mainloop()
 
     def deviceInfo(self, event):
@@ -550,9 +548,16 @@ class Dashboard:
 
         inWindow = Frame(newWindow, padx=20, pady=20)
         inWindow.place(x=450, y=20, width=550, height=300)
+        # image
+        device_img = PhotoImage(file=f'images/{data[6]}.png')
+        device_info = Label(newWindow, image=device_img)
+        device_info.pack()
+        device_info.place(x=600, y=30)
+        Label(newWindow, text=data[6], font=(
+            "arial", 20, 'bold')).place(x=680, y=280)
 
         # A Label widget to show in toplevel
-        Label(newWindow, text="Name : ", font=(
+        Label(newWindow, text="Host Name : ", font=(
             "arial", 12), bg='white').place(x=50, y=80)
         Label(newWindow, text=data[2], font=(
             "arial", 12), bg='white').place(x=180, y=80)
@@ -582,14 +587,17 @@ class Dashboard:
         add.menu.add_cascade(
             label="Create VLAN", command=lambda: Configuration(newWindow, data).vlan())
         if(data[6] == 'Router'):
-            add.menu.add_cascade(label="Static Routing", command=lambda: Configuration(
-                newWindow, data).static())
+            add.menu.add_cascade(
+                label="Add VPN", command=lambda: Configuration(newWindow, data).vpn())
             add.menu.add_cascade(
                 label="RIP Routing", command=lambda: Configuration(newWindow, data).rip())
+            add.menu.add_cascade(
+                label="Static Routing", command=lambda: Configuration(newWindow, data).static())
             add.menu.add_cascade(
                 label="EIGRP Routing", command=lambda: Configuration(newWindow, data).eigrp())
             add.menu.add_cascade(
                 label="OSPF Routing", command=lambda: Configuration(newWindow, data).ospf())
+            
 
         Button(newWindow, text='Configured History', width=15, bg='light green',
                command=lambda: Configuration(newWindow, data).configHistory()).place(x=180, y=290)
@@ -602,7 +610,7 @@ class Dashboard:
         Button(newWindow, text='Delete Device', width=14,
                bg='red', command=delete).place(x=310, y=290)
 
-        # newWindow.mainloop()
+        newWindow.mainloop()
 
     def output(self, result):
         global CLI
@@ -610,6 +618,7 @@ class Dashboard:
         CLI.insert(END, result)
         CLI.insert(END, '\n\n')
         CLI.config(state="disabled")
+        CLI.see("end")
 
 
 class Configuration (Dashboard):
@@ -649,25 +658,64 @@ class Configuration (Dashboard):
         trv_history.config(yscrollcommand=vs.set)
 
     def routing(self, config, window, commands):
-        device = {
-            'device_type': "autodetect",
-            'host': config['IP'],
-            'username': config['Username'],
-            'password': config['Password'],
-            'secret': config['Enable'],
-        }
-        try:
-            device['device_type'] = SSHDetect(**device).autodetect()
-            with ConnectHandler(**device) as ssh:
-                # ssh.enable()
-                output = ssh.send_config_set(commands)
-            Database().saveconfig(config)
-            messagebox.showinfo(
+        # create a flag to stop the progress bar
+        stop_flag = threading.Event()
+        global output
+        output = ""
+        def main():
+            global output
+            device = {
+                'device_type': "autodetect",
+                'host': config['IP'],
+                'username': config['Username'],
+                'password': config['Password'],
+                'secret': config['Enable'],
+            }
+            try:
+                device['device_type'] = SSHDetect(**device).autodetect()
+                with ConnectHandler(**device) as ssh:
+                    # ssh.enable()
+                    
+                    output = ssh.send_config_set(commands)
+                Database().saveconfig(config)
+                messagebox.showinfo(
                 "Success", "Configured Successfully", parent=window)
-            return output
-        except (NetmikoTimeoutException, NetmikoAuthenticationException) as error:
-            messagebox.showerror("Error", error, parent=window)
-            return error
+                # return output
+            except (NetmikoTimeoutException, NetmikoAuthenticationException) as error:
+                messagebox.showerror("Error", error, parent=window)
+                # return error
+                
+                output = error
+            finally:
+                stop_flag.set()
+        
+         
+        progress_bar_window = Frame(window,width= 280, bg="black")
+        progress_bar_window.place(x=120,y=230,height= 30)
+
+        progress_bar = ttk.Progressbar(progress_bar_window, orient="horizontal",
+                                   length=280, mode="indeterminate")
+        # progress_bar.config()
+        progress_bar.pack()
+        progress_bar.start()
+
+        def progress_check():
+            # If the flag is set (function f has completed):
+            if stop_flag.is_set():
+                global output
+                # Stop the progressbar and destroy the toplevel
+                self.output(output)
+                progress_bar.stop()
+                progress_bar_window.destroy()
+                
+            else:
+                # Schedule another call to progress_check in 100 milliseconds
+                progress_bar.after(100, progress_check)
+
+        # start executing f in another thread
+        threading.Thread(target=main, daemon=True).start()
+        # Start the tkinter loop
+        progress_check()
 
     def vlan(self):
         newWindow = Frame(self.window, bg='black', padx=20, pady=20)
@@ -709,7 +757,7 @@ class Configuration (Dashboard):
                     }
                     vlan = [f"vlan {vlanID.get()}", f"name {name.get()}", "exit",
                             f"interface {inter.get()}", f"switchport access vlan {vlanID.get()}"]
-                    self.output(self.routing(config, newWindow, vlan))
+                    self.routing(config, newWindow, vlan)
                 else:
                     messagebox.showerror(
                         "Error", "Information can not be left blank", parent=newWindow)
@@ -904,6 +952,67 @@ class Configuration (Dashboard):
                 ospf = [f"router ospf {processID.get()}",
                         f"network {networkIP.get()} {networkSub.get()} area {area.get()}"]
                 self.output(self.routing(config, newWindow, ospf))
+            except ValueError as e:
+                messagebox.showerror("Error", e, parent=newWindow)
+
+        # # button config
+        Button(newWindow, text="Config", font='Verdana 10 bold',
+               width=30, bg="light blue", command=check).place(x=120, y=230)
+
+    def vpn(self):
+        newWindow = Frame(self.window, bg='black', padx=20, pady=20)
+        newWindow.place(x=450, y=20, width=550, height=300)
+
+        # heading label
+        Label(newWindow, text="Tunnel No. :", font='Verdana 10 bold',
+              fg="white", bg="black").place(x=30, y=40)
+        Label(newWindow, text="IP Address :", font='Verdana 10 bold',
+              fg="white", bg="black").place(x=30, y=70)
+        Label(newWindow, text="Subnet Mask :", font='Verdana 10 bold',
+              fg="white", bg="black").place(x=30, y=100)
+        Label(newWindow, text="Source Address :", font='Verdana 10 bold',
+              fg="white", bg="black").place(x=30, y=130)
+        Label(newWindow, text="Destination Address :", font='Verdana 10 bold',
+              fg="white", bg="black").place(x=30, y=160)
+
+        # Entry Box
+        tunnel = StringVar()
+        ip = StringVar()
+        sub = StringVar()
+        source = StringVar()
+        dest = StringVar()
+
+        Entry(newWindow, width=20, textvariable=tunnel,
+              font='Verdana 10 bold').place(x=250, y=40)
+        Entry(newWindow, width=20, textvariable=ip,
+              font='Verdana 10 bold').place(x=250, y=70)
+        Entry(newWindow, width=20, textvariable=sub,
+              font='Verdana 10 bold').place(x=250, y=100)
+        Entry(newWindow, width=20, textvariable=source,
+              font='Verdana 10 bold').place(x=250, y=130)
+        Entry(newWindow, width=20, textvariable=dest,
+              font='Verdana 10 bold').place(x=250, y=160)
+
+        def check():
+            try:
+                IPv4Network(ip.get())
+                IPv4Address(sub.get())
+                IPv4Address(source.get())
+                IPv4Address(dest.get())
+                config = {
+                    'deviceID': self.device[0],
+                    'Name': 'VPN',
+                    'Device_Type': self.device[10],
+                    'Username': self.device[7],
+                    'Password': self.device[8],
+                    'Enable': self.device[9],
+                    'IP': self.device[3],
+                    'Destination': dest.get(),
+                    'Last_Modify': datetime.today()
+                }
+                vpn = [f"interface tunnel {tunnel.get()}",
+                        f"ip address {ip.get()} {sub.get()}", f"tunnel source {source.get()}", f"tunnel destination {dest.get()}"]
+                self.output(self.routing(config, newWindow, vpn))
             except ValueError as e:
                 messagebox.showerror("Error", e, parent=newWindow)
 
