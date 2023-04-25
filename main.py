@@ -3,7 +3,9 @@ from tkinter import ttk, messagebox
 from PIL import ImageTk
 from datetime import *
 import sqlite3
-import time, threading
+import time
+import threading
+import telnetlib
 from ipaddress import *
 from netmiko import (ConnectHandler, SSHDetect, NetmikoTimeoutException,
                      NetmikoAuthenticationException)
@@ -546,6 +548,19 @@ class Dashboard:
         Button(newWindow, text='<- Back', width=10, bg='black',
                fg='white', command=back).place(x=1, y=25)
 
+        def delete():
+            answer = messagebox.askokcancel(title='Confirmation',
+                                            message='Deleting will delete all the data.', icon=messagebox.WARNING)
+            if answer:
+                IP = self.trv_device.selection()[0]
+                self.trv_device.delete(self.trv_device.selection())
+                Database().deleteDevice(IP)
+                newWindow.destroy()
+
+        delete_img = PhotoImage(file=f'images/delete.png')
+        Button(newWindow, image=delete_img, bg="white",
+               command=delete, border=0).place(x=380, y=20)
+
         inWindow = Frame(newWindow, padx=20, pady=20)
         inWindow.place(x=450, y=20, width=550, height=300)
         # image
@@ -579,36 +594,82 @@ class Dashboard:
             "arial", 12), bg='white').place(x=180, y=240)
 
         # Button for operation
+
+        ###
         add = Menubutton(newWindow, text='Add Configuration', width=17, height=1, activebackground='light blue',
                          bg='light blue', relief='raised', borderwidth=2)
         add.place(x=50, y=290)
         add.menu = Menu(add, tearoff=False)
         add["menu"] = add.menu
-        add.menu.add_cascade(
-            label="Create VLAN", command=lambda: Configuration(newWindow, data).vlan())
+        if(data[6] == 'Switch'):
+            add.menu.add_cascade(
+                label="Virtual LAN", command=lambda: AddConfig(newWindow, data).vlan())
         if(data[6] == 'Router'):
             add.menu.add_cascade(
-                label="Add VPN", command=lambda: Configuration(newWindow, data).vpn())
+                label="VPN ", command=lambda: AddConfig(newWindow, data).vpn())
             add.menu.add_cascade(
-                label="RIP Routing", command=lambda: Configuration(newWindow, data).rip())
+                label="RIP Routing", command=lambda: AddConfig(newWindow, data).rip())
             add.menu.add_cascade(
-                label="Static Routing", command=lambda: Configuration(newWindow, data).static())
+                label="Static Routing", command=lambda: AddConfig(newWindow, data).static())
             add.menu.add_cascade(
-                label="EIGRP Routing", command=lambda: Configuration(newWindow, data).eigrp())
+                label="EIGRP Routing", command=lambda: AddConfig(newWindow, data).eigrp())
             add.menu.add_cascade(
-                label="OSPF Routing", command=lambda: Configuration(newWindow, data).ospf())
-            
+                label="OSPF Routing", command=lambda: AddConfig(newWindow, data).ospf())
 
-        Button(newWindow, text='Configured History', width=15, bg='light green',
-               command=lambda: Configuration(newWindow, data).configHistory()).place(x=180, y=290)
+        ###
+        def configHistory(window, device):
+            newWindow = Frame(window, bg='black', padx=20, pady=20)
+            newWindow.place(x=450, y=20, width=550, height=300)
 
-        def delete():
-            IP = self.trv_device.selection()[0]
-            self.trv_device.delete(self.trv_device.selection())
-            Database().deleteDevice(IP)
-            newWindow.destroy()
-        Button(newWindow, text='Delete Device', width=14,
-               bg='red', command=delete).place(x=310, y=290)
+            trv_history = ttk.Treeview(newWindow, selectmode='browse')
+            trv_history.grid(row=1, column=0, columnspan=3, padx=10, pady=10)
+            # Number of rows to display, default is 10
+            trv_history['height'] = 11
+            trv_history['show'] = 'headings'
+            trv_history["columns"] = [1, 2, 3, 4]  # column identifiers
+            trv_history.column(1, width=80, anchor='c')
+            trv_history.heading(1, text='Sr. No.')
+            trv_history.column(2, width=120, anchor='c')
+            trv_history.heading(2, text='Configured')
+            trv_history.column(3, width=120, anchor='c')
+            trv_history.heading(3, text='Destination')
+            trv_history.column(4, width=150, anchor='c')
+            trv_history.heading(4, text='Last Modify')
+
+            count = 0
+            for data in Database().getconfig(device[0]):
+                count = count + 1
+                lst = [count, data[2], data[3], datetime.strptime(
+                    data[4], '%Y-%m-%d %H:%M:%S.%f').date()]
+                trv_history.insert("", 'end', values=lst)
+
+            vs = ttk.Scrollbar(newWindow, orient='vertical',
+                               command=trv_history.yview)
+            vs.grid(row=1, column=3, sticky='ns', pady=10)
+            trv_history.config(yscrollcommand=vs.set)
+        Button(newWindow, text='Configured History', width=16, height=1, bg='light green',
+               command=lambda: configHistory(newWindow, data)).place(x=170, y=290)
+
+        ###
+        remove = Menubutton(newWindow, text='Remove Configuration', width=20, height=1, activebackground='#FF5050',
+                            bg='#FF5050', relief='raised', borderwidth=2)
+        remove.place(x=300, y=290)
+        remove.menu = Menu(remove, tearoff=False)
+        remove["menu"] = remove.menu
+        if(data[6] == 'Switch'):
+            remove.menu.add_cascade(
+                label="Virtual LAN", command=lambda: RemoveConfig(newWindow, data).vlan())
+        if(data[6] == 'Router'):
+            remove.menu.add_cascade(
+                label="VPN", command=lambda: RemoveConfig(newWindow, data).vpn())
+            remove.menu.add_cascade(
+                label="RIP Routing", command=lambda: RemoveConfig(newWindow, data).rip())
+            remove.menu.add_cascade(
+                label="Static Routing", command=lambda: RemoveConfig(newWindow, data).static())
+            remove.menu.add_cascade(
+                label="EIGRP Routing", command=lambda: RemoveConfig(newWindow, data).eigrp())
+            remove.menu.add_cascade(
+                label="OSPF Routing", command=lambda: RemoveConfig(newWindow, data).ospf())
 
         newWindow.mainloop()
 
@@ -621,48 +682,19 @@ class Dashboard:
         CLI.see("end")
 
 
-class Configuration (Dashboard):
+class AddConfig (Dashboard):
 
     def __init__(self, window, device):
         self.device = device
         self.window = window
-
-    def configHistory(self):
-        newWindow = Frame(self.window, bg='black', padx=20, pady=20)
-        newWindow.place(x=450, y=20, width=550, height=300)
-
-        trv_history = ttk.Treeview(newWindow, selectmode='browse')
-        trv_history.grid(row=1, column=0, columnspan=3, padx=10, pady=10)
-        trv_history['height'] = 11  # Number of rows to display, default is 10
-        trv_history['show'] = 'headings'
-        trv_history["columns"] = [1, 2, 3, 4]  # column identifiers
-        trv_history.column(1, width=80, anchor='c')
-        trv_history.heading(1, text='Sr. No.')
-        trv_history.column(2, width=120, anchor='c')
-        trv_history.heading(2, text='Configured')
-        trv_history.column(3, width=120, anchor='c')
-        trv_history.heading(3, text='Destination')
-        trv_history.column(4, width=150, anchor='c')
-        trv_history.heading(4, text='Last Modify')
-
-        count = 0
-        for data in Database().getconfig(self.device[0]):
-            count = count + 1
-            lst = [count, data[2], data[3], datetime.strptime(
-                data[4], '%Y-%m-%d %H:%M:%S.%f').date()]
-            trv_history.insert("", 'end', values=lst)
-
-        vs = ttk.Scrollbar(newWindow, orient='vertical',
-                           command=trv_history.yview)
-        vs.grid(row=1, column=3, sticky='ns', pady=10)
-        trv_history.config(yscrollcommand=vs.set)
 
     def routing(self, config, window, commands):
         # create a flag to stop the progress bar
         stop_flag = threading.Event()
         global output
         output = ""
-        def main():
+
+        def ssh():
             global output
             device = {
                 'device_type': "autodetect",
@@ -675,26 +707,62 @@ class Configuration (Dashboard):
                 device['device_type'] = SSHDetect(**device).autodetect()
                 with ConnectHandler(**device) as ssh:
                     # ssh.enable()
-                    
                     output = ssh.send_config_set(commands)
                 Database().saveconfig(config)
                 messagebox.showinfo(
-                "Success", "Configured Successfully", parent=window)
-                # return output
+                    "Success", "Configured Successfully", parent=window)
+
             except (NetmikoTimeoutException, NetmikoAuthenticationException) as error:
                 messagebox.showerror("Error", error, parent=window)
-                # return error
-                
                 output = error
             finally:
                 stop_flag.set()
-        
-         
-        progress_bar_window = Frame(window,width= 280, bg="black")
-        progress_bar_window.place(x=120,y=230,height= 30)
+
+        def telnet():
+            global output
+            def to_bytes(line): return line.encode('ascii') + b"\n"
+            try:
+                with telnetlib.Telnet(config['IP']) as telnet:
+                    telnet.read_until(b"Username")
+                    telnet.write(to_bytes(config['Username']))
+                    telnet.read_until(b"Password")
+                    telnet.write(to_bytes(config['Password']))
+                    index, m, output = telnet .expect([b">", b"#"])
+                    if index == 0:
+                        telnet.write(b"enable \n")
+                        telnet.read_until(b"Password")
+                        telnet.write(to_bytes(config['Enable']))
+                        telnet.read_until(b"#", timeout=5)
+                        telnet.write(b"terminal length 0\n")
+                    telnet.read_until(b"#", timeout=5)
+                    time.sleep(3)
+                    telnet.read_very_eager()
+                    # result = {}
+                    telnet.write(to_bytes("configure terminal"))
+                    for command in commands:
+                        telnet.write(to_bytes(command))
+                        output = telnet.read_until(b"#").decode("utf-8")
+                        # result [command] = output. replace("'\r\n","\n")
+                    telnet.write(to_bytes("end"))
+                    telnet.write(to_bytes("show running-config"))
+                    output = telnet.read_until(b"#", timeout=5).decode("utf-8")
+                    output = telnet.read_until(b"#", timeout=5).decode("utf-8")
+                    output = output.replace("\r\n", "\n")
+                Database().saveconfig(config)
+                messagebox.showinfo(
+                    "Success", "Configured Successfully", parent=window)
+            except TimeoutError as error:
+                messagebox.showerror("Error", error, parent=window)
+                output = error
+            finally:
+                stop_flag.set()
+
+        progress_bar_window = Frame(window, width=280, bg="black")
+        progress_bar_window.place(x=120, y=230, height=30)
 
         progress_bar = ttk.Progressbar(progress_bar_window, orient="horizontal",
-                                   length=280, mode="indeterminate")
+                                       length=280, mode="indeterminate")
+
         # progress_bar.config()
         progress_bar.pack()
         progress_bar.start()
@@ -707,13 +775,13 @@ class Configuration (Dashboard):
                 self.output(output)
                 progress_bar.stop()
                 progress_bar_window.destroy()
-                
+
             else:
                 # Schedule another call to progress_check in 100 milliseconds
                 progress_bar.after(100, progress_check)
 
         # start executing f in another thread
-        threading.Thread(target=main, daemon=True).start()
+        threading.Thread(target=telnet, daemon=True).start()
         # Start the tkinter loop
         progress_check()
 
@@ -746,13 +814,14 @@ class Configuration (Dashboard):
                     pass
                     config = {
                         'deviceID': self.device[0],
-                        'Name': 'VLAN',
+                        'Name': 'VLAN - ' + name.get(),
                         'Device_Type': self.device[10],
                         'Username': self.device[7],
                         'Password': self.device[8],
                         'Enable': self.device[9],
                         'IP': self.device[3],
-                        'Destination': name.get(),
+                        'Destination': inter.get(),
+                        'Activity' : 'Add',
                         'Last_Modify': datetime.today()
                     }
                     vlan = [f"vlan {vlanID.get()}", f"name {name.get()}", "exit",
@@ -806,6 +875,7 @@ class Configuration (Dashboard):
                     'Enable': self.device[9],
                     'IP': self.device[3],
                     'Destination': destIP.get(),
+                    'Activity' : 'Add',
                     'Last_Modify': datetime.today()
                 }
                 static = [
@@ -849,6 +919,7 @@ class Configuration (Dashboard):
                     'Enable': self.device[9],
                     'IP': self.device[3],
                     'Destination': networkIP.get(),
+                    'Activity' : 'Add',
                     'Last_Modify': datetime.today()
                 }
                 rip = [
@@ -892,6 +963,7 @@ class Configuration (Dashboard):
                     'Enable': self.device[9],
                     'IP': self.device[3],
                     'Destination': networkIP.get(),
+                    'Activity' : 'Add',
                     'Last_Modify': datetime.today()
                 }
                 eigrp = [
@@ -947,10 +1019,11 @@ class Configuration (Dashboard):
                     'Enable': self.device[9],
                     'IP': self.device[3],
                     'Destination': networkIP.get(),
+                    'Activity' : 'Add',
                     'Last_Modify': datetime.today()
                 }
                 ospf = [f"router ospf {processID.get()}",
-                        f"network {networkIP.get()} {networkSub.get()} area {area.get()}"]
+                        f"network {networkIP.get()} {networkSub.get()} area {area.get()}", "no shut"]
                 self.output(self.routing(config, newWindow, ospf))
             except ValueError as e:
                 messagebox.showerror("Error", e, parent=newWindow)
@@ -1008,10 +1081,424 @@ class Configuration (Dashboard):
                     'Enable': self.device[9],
                     'IP': self.device[3],
                     'Destination': dest.get(),
+                    'Activity' : 'Add',
                     'Last_Modify': datetime.today()
                 }
                 vpn = [f"interface tunnel {tunnel.get()}",
-                        f"ip address {ip.get()} {sub.get()}", f"tunnel source {source.get()}", f"tunnel destination {dest.get()}"]
+                       f"ip address {ip.get()} {sub.get()}", f"tunnel source {source.get()}", f"tunnel destination {dest.get()}"]
+                self.output(self.routing(config, newWindow, vpn))
+            except ValueError as e:
+                messagebox.showerror("Error", e, parent=newWindow)
+
+        # # button config
+        Button(newWindow, text="Config", font='Verdana 10 bold',
+               width=30, bg="light blue", command=check).place(x=120, y=230)
+
+
+class RemoveConfig (Dashboard):
+
+    def __init__(self, window, device):
+        self.device = device
+        self.window = window
+
+    def routing(self, config, window, commands):
+        # create a flag to stop the progress bar
+        stop_flag = threading.Event()
+        global output
+        output = ""
+
+        def ssh():
+            global output
+            device = {
+                'device_type': "autodetect",
+                'host': config['IP'],
+                'username': config['Username'],
+                'password': config['Password'],
+                'secret': config['Enable'],
+            }
+            try:
+                device['device_type'] = SSHDetect(**device).autodetect()
+                with ConnectHandler(**device) as ssh:
+                    # ssh.enable()
+                    output = ssh.send_config_set(commands)
+                Database().saveconfig(config)
+                messagebox.showinfo(
+                    "Success", "Configured Successfully", parent=window)
+
+            except (NetmikoTimeoutException, NetmikoAuthenticationException) as error:
+                messagebox.showerror("Error", error, parent=window)
+                output = error
+            finally:
+                stop_flag.set()
+
+        def telnet():
+            global output
+            def to_bytes(line): return line.encode('ascii') + b"\n"
+            try:
+                with telnetlib.Telnet(config['IP']) as telnet:
+                    telnet.read_until(b"Username")
+                    telnet.write(to_bytes(config['Username']))
+                    telnet.read_until(b"Password")
+                    telnet.write(to_bytes(config['Password']))
+                    index, m, output = telnet .expect([b">", b"#"])
+                    if index == 0:
+                        telnet.write(b"enable \n")
+                        telnet.read_until(b"Password")
+                        telnet.write(to_bytes(config['Enable']))
+                        telnet.read_until(b"#", timeout=5)
+                        telnet.write(b"terminal length 0\n")
+                    telnet.read_until(b"#", timeout=5)
+                    time.sleep(3)
+                    telnet.read_very_eager()
+                    # result = {}
+                    telnet.write(to_bytes("configure terminal"))
+                    for command in commands:
+                        telnet.write(to_bytes(command))
+                        output = telnet.read_until(b"#").decode("utf-8")
+                        # result [command] = output. replace("'\r\n","\n")
+                    telnet.write(to_bytes("end"))
+                    telnet.write(to_bytes("show running-config"))
+                    output = telnet.read_until(b"#", timeout=5).decode("utf-8")
+                    output = telnet.read_until(b"#", timeout=5).decode("utf-8")
+                    output = output.replace("\r\n", "\n")
+                Database().saveconfig(config)
+                messagebox.showinfo(
+                    "Success", "Configured Successfully", parent=window)
+            except TimeoutError as error:
+                messagebox.showerror("Error", error, parent=window)
+                output = error
+            finally:
+                stop_flag.set()
+
+        progress_bar_window = Frame(window, width=280, bg="black")
+        progress_bar_window.place(x=120, y=230, height=30)
+
+        progress_bar = ttk.Progressbar(progress_bar_window, orient="horizontal",
+                                       length=280, mode="indeterminate")
+
+        # progress_bar.config()
+        progress_bar.pack()
+        progress_bar.start()
+
+        def progress_check():
+            # If the flag is set (function f has completed):
+            if stop_flag.is_set():
+                global output
+                # Stop the progressbar and destroy the toplevel
+                self.output(output)
+                progress_bar.stop()
+                progress_bar_window.destroy()
+
+            else:
+                # Schedule another call to progress_check in 100 milliseconds
+                progress_bar.after(100, progress_check)
+
+        # start executing f in another thread
+        threading.Thread(target=telnet, daemon=True).start()
+        # Start the tkinter loop
+        progress_check()
+
+    def vlan(self):
+        newWindow = Frame(self.window, bg='black', padx=20, pady=20)
+        newWindow.place(x=450, y=20, width=550, height=300)
+        # heading label
+        Label(newWindow, text="VLAN ID :", font='Verdana 10 bold',
+              foreground="white", bg="black").place(x=30, y=40)
+        Label(newWindow, text="Name :", font='Verdana 10 bold',
+              foreground="white", bg="black").place(x=30, y=80)
+        Label(newWindow, text="Interface :", font='Verdana 10 bold',
+              foreground="white", bg="black").place(x=30, y=120)
+
+        # Entry Box
+        vlanID = StringVar()
+        name = StringVar()
+        inter = StringVar()
+
+        Entry(newWindow, width=20, textvariable=vlanID,
+              font='Verdana 10 bold').place(x=250, y=40)
+        Entry(newWindow, width=20, textvariable=name,
+              font='Verdana 10 bold').place(x=250, y=80)
+        Entry(newWindow, width=20, textvariable=inter,
+              font='Verdana 10 bold').place(x=250, y=120)
+
+        def check():
+            try:
+                if vlanID.get() and name.get() and inter.get():
+                    pass
+                    config = {
+                        'deviceID': self.device[0],
+                        'Name': 'VLAN - ' + name.get(),
+                        'Device_Type': self.device[10],
+                        'Username': self.device[7],
+                        'Password': self.device[8],
+                        'Enable': self.device[9],
+                        'IP': self.device[3],
+                        'Destination': inter.get(),
+                        'Activity' : 'Remove',
+                        'Last_Modify': datetime.today()
+                    }
+                    vlan = [f"interface {inter.get()}", f"switchport access vlan 1", "exit",
+                            f"no vlan {vlanID.get()}"]
+                    self.routing(config, newWindow, vlan)
+                else:
+                    messagebox.showerror(
+                        "Error", "Information can not be left blank", parent=newWindow)
+            except ValueError as e:
+                messagebox.showerror("Error", e, parent=newWindow)
+
+        # # button config
+        Button(newWindow, text="Config", font='Verdana 10 bold',
+               width=30, bg="light blue", command=check).place(x=120, y=230)
+
+    def static(self):
+        newWindow = Frame(self.window, bg='black', padx=20, pady=20)
+        newWindow.place(x=450, y=20, width=550, height=300)
+        # heading label
+        Label(newWindow, text="Destination Network Address :",
+              font='Verdana 10 bold', foreground="white", bg="black").place(x=20, y=40)
+        Label(newWindow, text="Destination Subnet Mask :", font='Verdana 10 bold',
+              foreground="white", bg="black").place(x=20, y=90)
+        Label(newWindow, text="Next Hop :", font='Verdana 10 bold',
+              foreground="white", bg="black").place(x=20, y=140)
+
+        # Entry Box
+        destIP = StringVar()
+        destSub = StringVar()
+        nextHop = StringVar()
+
+        Entry(newWindow, width=20, textvariable=destIP,
+              font='Verdana 10 bold').place(x=270, y=40)
+        Entry(newWindow, width=20, textvariable=destSub,
+              font='Verdana 10 bold').place(x=270, y=90)
+        Entry(newWindow, width=20, textvariable=nextHop,
+              font='Verdana 10 bold').place(x=270, y=140)
+
+        def check():
+            try:
+                IPv4Network(destIP.get())
+                IPv4Address(destSub.get())
+                IPv4Address(nextHop.get())
+
+                config = {
+                    'deviceID': self.device[0],
+                    'Name': 'STATIC',
+                    'Device_Type': self.device[10],
+                    'Username': self.device[7],
+                    'Password': self.device[8],
+                    'Enable': self.device[9],
+                    'IP': self.device[3],
+                    'Destination': destIP.get(),
+                    'Activity' : 'Remove',
+                    'Last_Modify': datetime.today()
+                }
+                static = [
+                    f"ip route {destIP.get()} {destSub.get()} {nextHop.get()}"]
+                self.output(self.routing(config, newWindow, static))
+            except ValueError as e:
+                messagebox.showerror("Error", e, parent=newWindow)
+
+        # # button config
+        Button(newWindow, text="Config", font='Verdana 10 bold',
+               width=30, bg="light blue", command=check).place(x=120, y=230)
+
+    def rip(self):
+        newWindow = Frame(self.window, bg='black', padx=20, pady=20)
+        newWindow.place(x=450, y=20, width=550, height=300)
+
+        # heading label
+        Label(newWindow, text="Network IP Address :", font='Verdana 10 bold',
+              foreground="white", bg="black").place(x=30, y=40)
+        Label(newWindow, text="Version :", font='Verdana 10 bold',
+              foreground="white", bg="black").place(x=30, y=90)
+
+        # Entry Box
+        networkIP = StringVar()
+        version = StringVar()
+
+        Entry(newWindow, width=20, textvariable=networkIP,
+              font='Verdana 10 bold').place(x=250, y=40)
+        Entry(newWindow, width=20, textvariable=version,
+              font='Verdana 10 bold').place(x=250, y=90)
+
+        def check():
+            try:
+                IPv4Network(networkIP.get())
+                config = {
+                    'deviceID': self.device[0],
+                    'Name': 'RIP',
+                    'Device_Type': self.device[10],
+                    'Username': self.device[7],
+                    'Password': self.device[8],
+                    'Enable': self.device[9],
+                    'IP': self.device[3],
+                    'Destination': networkIP.get(),
+                    'Activity' : 'Remove',
+                    'Last_Modify': datetime.today()
+                }
+                rip = [
+                    "router rip", f"version {version.get()}", f"network {networkIP.get()}", "no auto-summary"]
+                self.output(self.routing(config, newWindow, rip))
+            except ValueError as e:
+                messagebox.showerror("Error", e, parent=newWindow)
+
+        # # button config
+        Button(newWindow, text="Config", font='Verdana 10 bold',
+               width=30, bg="light blue", command=check).place(x=120, y=230)
+
+    def eigrp(self):
+        newWindow = Frame(self.window, bg='black', padx=20, pady=20)
+        newWindow.place(x=450, y=20, width=550, height=300)
+
+        # heading label
+        Label(newWindow, text="Network Address :", font='Verdana 10 bold',
+              foreground="white", bg="black").place(x=30, y=40)
+        Label(newWindow, text="Autonomous-System No.:", font='Verdana 10 bold',
+              foreground="white", bg="black").place(x=30, y=90)
+
+        # Entry Box
+        networkIP = StringVar()
+        as_number = StringVar()
+
+        Entry(newWindow, width=20, textvariable=networkIP,
+              font='Verdana 10 bold').place(x=250, y=40)
+        Entry(newWindow, width=20, textvariable=as_number,
+              font='Verdana 10 bold').place(x=250, y=90)
+
+        def check():
+            try:
+                IPv4Network(networkIP.get())
+                config = {
+                    'deviceID': self.device[0],
+                    'Name': 'EIGRP',
+                    'Device_Type': self.device[10],
+                    'Username': self.device[7],
+                    'Password': self.device[8],
+                    'Enable': self.device[9],
+                    'IP': self.device[3],
+                    'Destination': networkIP.get(),
+                    'Activity' : 'Remove',
+                    'Last_Modify': datetime.today()
+                }
+                eigrp = [
+                    f"router eigrp {as_number.get()}", f"network {networkIP.get()}"]
+                self.output(self.routing(config, newWindow, eigrp))
+            except ValueError as e:
+                messagebox.showerror("Error", e, parent=newWindow)
+
+        # # button config
+        # # button config
+        Button(newWindow, text="Config", font='Verdana 10 bold',
+               width=30, bg="light blue", command=check).place(x=120, y=230)
+
+    def ospf(self):
+        newWindow = Frame(self.window, bg='black', padx=20, pady=20)
+        newWindow.place(x=450, y=20, width=550, height=300)
+
+        # heading label
+        Label(newWindow, text="Process ID :", font='Verdana 10 bold',
+              foreground="white", bg="black").place(x=30, y=40)
+        Label(newWindow, text="Network IP Address :", font='Verdana 10 bold',
+              foreground="white", bg="black").place(x=30, y=80)
+        Label(newWindow, text="Network Subnet Mask :", font='Verdana 10 bold',
+              foreground="white", bg="black").place(x=30, y=120)
+        Label(newWindow, text="Area :", font='Verdana 10 bold',
+              foreground="white", bg="black").place(x=30, y=160)
+
+        # Entry Box
+        processID = StringVar()
+        networkIP = StringVar()
+        networkSub = StringVar()
+        area = StringVar()
+
+        Entry(newWindow, width=20, textvariable=processID,
+              font='Verdana 10 bold').place(x=250, y=40)
+        Entry(newWindow, width=20, textvariable=networkIP,
+              font='Verdana 10 bold').place(x=250, y=80)
+        Entry(newWindow, width=20, textvariable=networkSub,
+              font='Verdana 10 bold').place(x=250, y=120)
+        Entry(newWindow, width=20, textvariable=area,
+              font='Verdana 10 bold').place(x=250, y=160)
+
+        def check():
+            try:
+                IPv4Network(networkIP.get())
+                IPv4Address(networkSub.get())
+                config = {
+                    'deviceID': self.device[0],
+                    'Name': 'OSPF',
+                    'Device_Type': self.device[10],
+                    'Username': self.device[7],
+                    'Password': self.device[8],
+                    'Enable': self.device[9],
+                    'IP': self.device[3],
+                    'Destination': networkIP.get(),
+                    'Activity' : 'Remove',
+                    'Last_Modify': datetime.today()
+                }
+                ospf = [f"router ospf {processID.get()}",
+                        f"network {networkIP.get()} {networkSub.get()} area {area.get()}", "no shut"]
+                self.output(self.routing(config, newWindow, ospf))
+            except ValueError as e:
+                messagebox.showerror("Error", e, parent=newWindow)
+
+        # # button config
+        Button(newWindow, text="Config", font='Verdana 10 bold',
+               width=30, bg="light blue", command=check).place(x=120, y=230)
+
+    def vpn(self):
+        newWindow = Frame(self.window, bg='black', padx=20, pady=20)
+        newWindow.place(x=450, y=20, width=550, height=300)
+
+        # heading label
+        Label(newWindow, text="Tunnel No. :", font='Verdana 10 bold',
+              fg="white", bg="black").place(x=30, y=40)
+        Label(newWindow, text="IP Address :", font='Verdana 10 bold',
+              fg="white", bg="black").place(x=30, y=70)
+        Label(newWindow, text="Subnet Mask :", font='Verdana 10 bold',
+              fg="white", bg="black").place(x=30, y=100)
+        Label(newWindow, text="Source Address :", font='Verdana 10 bold',
+              fg="white", bg="black").place(x=30, y=130)
+        Label(newWindow, text="Destination Address :", font='Verdana 10 bold',
+              fg="white", bg="black").place(x=30, y=160)
+
+        # Entry Box
+        tunnel = StringVar()
+        ip = StringVar()
+        sub = StringVar()
+        source = StringVar()
+        dest = StringVar()
+
+        Entry(newWindow, width=20, textvariable=tunnel,
+              font='Verdana 10 bold').place(x=250, y=40)
+        Entry(newWindow, width=20, textvariable=ip,
+              font='Verdana 10 bold').place(x=250, y=70)
+        Entry(newWindow, width=20, textvariable=sub,
+              font='Verdana 10 bold').place(x=250, y=100)
+        Entry(newWindow, width=20, textvariable=source,
+              font='Verdana 10 bold').place(x=250, y=130)
+        Entry(newWindow, width=20, textvariable=dest,
+              font='Verdana 10 bold').place(x=250, y=160)
+
+        def check():
+            try:
+                IPv4Network(ip.get())
+                IPv4Address(sub.get())
+                IPv4Address(source.get())
+                IPv4Address(dest.get())
+                config = {
+                    'deviceID': self.device[0],
+                    'Name': 'VPN',
+                    'Device_Type': self.device[10],
+                    'Username': self.device[7],
+                    'Password': self.device[8],
+                    'Enable': self.device[9],
+                    'IP': self.device[3],
+                    'Destination': dest.get(),
+                    'Activity' : 'Remove',
+                    'Last_Modify': datetime.today()
+                }
+                vpn = [f"interface tunnel {tunnel.get()}",
+                       f"ip address {ip.get()} {sub.get()}", f"tunnel source {source.get()}", f"tunnel destination {dest.get()}"]
                 self.output(self.routing(config, newWindow, vpn))
             except ValueError as e:
                 messagebox.showerror("Error", e, parent=newWindow)
