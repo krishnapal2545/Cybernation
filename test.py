@@ -110,28 +110,123 @@
 #         Button(newWindow, text='Config History', width=15, bg='light green',
 #                command=lambda: Configuration(newWindow, data).configHistory()).place(x=160, y=380)
 
-#         def delete():
-#             IP = self.trv_device.selection()[0]
-#             self.trv_device.delete(self.trv_device.selection())
-#             Database().deleteDevice(IP)
-#             newWindow.destroy()
-#         Button(newWindow, text='Delete Device', width=15,
-#                bg='red', command=delete).place(x=290, y=380)
+# #         def delete():
+# #             IP = self.trv_device.selection()[0]
+# #             self.trv_device.delete(self.trv_device.selection())
+# #             Database().deleteDevice(IP)
+# #             newWindow.destroy()
+# #         Button(newWindow, text='Delete Device', width=15,
+# #                bg='red', command=delete).place(x=290, y=380)
+
+# def routing(config, window, commands):
+#         # create a flag to stop the progress bar
+#         stop_flag = threading.Event()
+#         global output
+#         output = ""
+
+#         def ssh():
+#             global output
+#             device = {
+#                 'device_type': "autodetect",
+#                 'host': config['IP'],
+#                 'username': config['Username'],
+#                 'password': config['Password'],
+#                 'secret': config['Enable'],
+#             }
+#             try:
+#                 device['device_type'] = SSHDetect(**device).autodetect()
+#                 with ConnectHandler(**device) as ssh:
+#                     # ssh.enable()
+#                     output = ssh.send_config_set(commands)
+#                 Database().saveconfig(config)
+#                 messagebox.showinfo(
+#                     "Success", "Configured Successfully", parent=window)
+
+#             except (NetmikoTimeoutException, NetmikoAuthenticationException) as error:
+#                 messagebox.showerror("Error", error, parent=window)
+#                 output = error
+#             finally:
+#                 stop_flag.set()
+
+#         def telnet():
+#             global output
+#             def to_bytes(line): return line.encode('ascii') + b"\n"
+#             try:
+#                 with telnetlib.Telnet(config['IP']) as telnet:
+#                     telnet.read_until(b"Username")
+#                     telnet.write(to_bytes(config['Username']))
+#                     telnet.read_until(b"Password")
+#                     telnet.write(to_bytes(config['Password']))
+#                     index, m, output = telnet .expect([b">", b"#"])
+#                     if index == 0:
+#                         telnet.write(b"enable \n")
+#                         telnet.read_until(b"Password")
+#                         telnet.write(to_bytes(config['Enable']))
+#                         telnet.read_until(b"#", timeout=5)
+#                         telnet.write(b"terminal length 0\n")
+#                     telnet.read_until(b"#", timeout=5)
+#                     time.sleep(3)
+#                     telnet.read_very_eager()
+
+#                     telnet.write(to_bytes("configure terminal"))
+#                     for command in commands:
+#                         telnet.write(to_bytes(command))
+#                         output = telnet.read_until(b"#").decode("utf-8")
+
+#                     telnet.write(to_bytes("end"))
+#                     output = telnet.read_all().decode('ascii')
+#                     output = output.replace("\r\n", "\n")
+#                 Database().saveconfig(config)
+#                 messagebox.showinfo(
+#                     "Success", "Configured Successfully", parent=window)
+#             except TimeoutError as error:
+#                 messagebox.showerror("Error", error, parent=window)
+#                 output = error
+#             finally:
+#                 stop_flag.set()
+
+#         progress_bar_window = Frame(window, width=280, bg="black")
+#         progress_bar_window.place(x=120, y=230, height=30)
+
+#         progress_bar = ttk.Progressbar(progress_bar_window, orient="horizontal",
+#                                        length=280, mode="indeterminate")
+
+#         # progress_bar.config()
+#         progress_bar.pack()
+#         progress_bar.start()
+
+#         def progress_check():
+#             # If the flag is set (function f has completed):
+#             if stop_flag.is_set():
+#                 global output
+#                 # Stop the progressbar and destroy the toplevel
+#                 Dashboard.output(output)
+#                 progress_bar.stop()
+#                 progress_bar_window.destroy()
+
+#             else:
+#                 # Schedule another call to progress_check in 100 milliseconds
+#                 progress_bar.after(100, progress_check)
+
+#         # start executing f in another thread
+#         threading.Thread(target=telnet, daemon=True).start()
+#         # Start the tkinter loop
+#         progress_check()
 
 
-from netmiko import (ConnectHandler)
+# from netmiko import (ConnectHandler)
 
 
-device={
-    "device_type":"cisco_xe",
-    "host":"192.168.",
-    "port":22,
-    "username":"admin",
-    "password":"cisco",
-    "secret":"a223B",
-    }
-#device['device_type']= SSHDetect(**device).autodetect()
-ConnectHandler(**device)
-#     ssh.enable()
-#     output = ssh.send_command('show ip inter brief')
-# print(output)
+# device={
+#     "device_type":"cisco_xe",
+#     "host":"192.168.",
+#     "port":22,
+#     "username":"admin",
+#     "password":"cisco",
+#     "secret":"a223B",
+#     }
+# #device['device_type']= SSHDetect(**device).autodetect()
+# ConnectHandler(**device)
+# #     ssh.enable()
+# #     output = ssh.send_command('show ip inter brief')
+# # print(output)

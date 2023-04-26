@@ -49,6 +49,7 @@ class Database:
         DeviceID           TEXT     NOT NULL,
         Name               TEXT     NOT NULL,
         Config             TEXT     NOT NULL,
+        Activity           TEXT     NOT NULL,
         Last_Modify        DATETIME NOT NULL);''')
 
     def saveUser(self, fname, lname, gen, org, phone, uname, passw):
@@ -84,8 +85,8 @@ class Database:
 
     def saveconfig(self, config):
         self.conn.execute('''
-        INSERT INTO Configs (DeviceID, Name, Config, Last_Modify) 
-        VALUES(?,?,?,?)''', (str(config['deviceID']), str(config['Name']), str(config['Destination']), str(config['Last_Modify']),))
+        INSERT INTO Configs (DeviceID, Name, Config, Activity ,Last_Modify) 
+        VALUES(?,?,?,?)''', (str(config['deviceID']), str(config['Name']), str(config['Destination']), str(config['Activity']), str(config['Last_Modify']),))
         self.conn.execute('''
         UPDATE Devices SET Last_Modify = ? WHERE ID = ?''', (datetime.today(), str(config['deviceID']),))
         self.conn.commit()
@@ -278,15 +279,98 @@ class Dashboard:
             x=300, y=0, width=1070, height=60)
 
         # ================== SIDEBAR ===================================================
-        self.sidebar = Frame(self.window, bg='#ffffff').place(
-            x=0, y=0, width=300, height=700)
+        self.sidebar()
 
         # ============= BODY ==========================================================
+        self.body()
+
+        self.window.mainloop()
+
+    def sidebar(self):
+        newWindow = Frame(self.window, bg='#ffffff').place(
+            x=0, y=0, width=300, height=700)
+
+        # date and Time
+        self.clock_image = PhotoImage(file="images/time.png")
+        self.date_time_image = Label(
+            newWindow, image=self.clock_image, bg="white")
+        self.date_time_image.place(x=75, y=30)
+
+        self.date_time = Label(self.window)
+        self.date_time.place(x=105, y=25)
+        self.show_time()
+
+        # logo
+        gender = self.user[3]
+        self.logoImage = ImageTk.PhotoImage(file=f'images/{gender}.png')
+        self.logo = Label(newWindow, image=self.logoImage,
+                          bg='#ffffff').place(x=60, y=80)
+
+        # Name of brand/person
+        uname = self.user[1] + ' ' + self.user[2]
+        self.Username = Label(newWindow, text=uname, bg='#ffffff', font=(
+            "", 15, "bold")).place(x=80, y=240)
+
+        # Gender
+        self.gen_img = PhotoImage(file='images/gender.png').subsample(2, 2)
+        Label(newWindow, image=self.gen_img,
+              bg='#ffffff').place(x=30, y=290)
+        Label(newWindow, text=self.user[3], bg='#ffffff',
+              font='Verdana 11 ').place(x=80, y=290)
+
+        # Organi
+        self.org_img = PhotoImage(file='images/org.png').subsample(2, 2)
+        Label(newWindow, image=self.org_img,
+              bg='#ffffff').place(x=30, y=330)
+        Label(newWindow, text=self.user[4], bg='#ffffff',
+              font='Verdana 11 ').place(x=80, y=330)
+
+        # Contact
+        self.contact_img = PhotoImage(
+            file='images/contact.png').subsample(2, 2)
+        Label(newWindow, image=self.contact_img,
+              bg='#ffffff').place(x=30, y=370)
+        Label(newWindow, text=self.user[5], bg='#ffffff',
+              font='Verdana 11').place(x=80, y=370)
+
+        # Separator object
+        separator = ttk.Separator(newWindow, orient='horizontal')
+        separator.place(x=0, y=610, width=300)
+
+        # Add Device
+        self.routerImage = PhotoImage(file='images/device.png').subsample(3, 3)
+        Button(newWindow, text="  Add Device", bg='#ffffff', font=("", 13, "bold"), bd=0, image=self.routerImage, compound=LEFT,
+               cursor='hand2', activebackground='#ffffff', command=self.add_device).place(x=70, y=620)
+
+        # Separator object
+        separator = ttk.Separator(newWindow, orient='horizontal')
+        separator.place(x=0, y=660, width=300)
+
+        # Close Window
+        self.settingsImage = PhotoImage(file='images/close.png')
+        Button(newWindow, text=" Close ", bg='#ffffff', font=("", 13, "bold"), bd=0, image=self.settingsImage, compound=LEFT,
+               cursor='hand2', activebackground='#ffffff', command=lambda: self.window.destroy()).place(x=30, y=670)
+
+        # Separator object
+        separator = ttk.Separator(newWindow, orient='vertical').place(
+            x=150, y=660, height=40)
+
+        def logout():
+            self.window.destroy()
+            Login()
+        # Logout
+        self.logoutImage = PhotoImage(file='images/logout.png')
+        Button(newWindow, text=" Logout  ", bg='#ffffff', font=("", 13, "bold"), bd=0, image=self.logoutImage, compound=LEFT,
+               cursor='hand2', activebackground='#ffffff', command=logout).place(x=180, y=670)
+
+    def body(self):
         # body frame 1
         Label(self.window, text='Dashboard', font=("", 15, "bold"),
               fg='black', bg='white', width=20).place(x=325, y=30)
         self.frame1 = Frame(self.window, bg='white')
         self.frame1.place(x=325, y=60, width=1020, height=340)
+        # Body Frame 1
+        self.devices()
 
         # body frame 2
         Label(self.window, text='Output', font=("", 15, "bold"),
@@ -302,94 +386,9 @@ class Dashboard:
         vs.place(x=990, y=25, height=220)
         CLI.config(yscrollcommand=vs.set)
 
-        # ==============================================================================
-        # ================== SIDEBAR ===================================================
-        # ==============================================================================
-
-        # date and Time
-        self.clock_image = PhotoImage(file="images/time.png")
-        self.date_time_image = Label(
-            self.sidebar, image=self.clock_image, bg="white")
-        self.date_time_image.place(x=75, y=30)
-
-        self.date_time = Label(self.window)
-        self.date_time.place(x=105, y=25)
-        self.show_time()
-
-        # logo
-        gender = user[3]
-        self.logoImage = ImageTk.PhotoImage(file=f'images/{gender}.png')
-        self.logo = Label(self.sidebar, image=self.logoImage,
-                          bg='#ffffff').place(x=60, y=80)
-
-        # Name of brand/person
-        uname = user[1] + ' ' + user[2]
-        self.Username = Label(self.sidebar, text=uname, bg='#ffffff', font=(
-            "", 15, "bold")).place(x=80, y=240)
-
-        # Gender
-        self.gen_img = PhotoImage(file='images/gender.png').subsample(2, 2)
-        Label(self.sidebar, image=self.gen_img,
-              bg='#ffffff').place(x=30, y=290)
-        Label(self.sidebar, text=user[3], bg='#ffffff',
-              font='Verdana 11 ').place(x=80, y=290)
-
-        # Organi
-        self.org_img = PhotoImage(file='images/org.png').subsample(2, 2)
-        Label(self.sidebar, image=self.org_img,
-              bg='#ffffff').place(x=30, y=330)
-        Label(self.sidebar, text=user[4], bg='#ffffff',
-              font='Verdana 11 ').place(x=80, y=330)
-
-        # Contact
-        self.contact_img = PhotoImage(
-            file='images/contact.png').subsample(2, 2)
-        Label(self.sidebar, image=self.contact_img,
-              bg='#ffffff').place(x=30, y=370)
-        Label(self.sidebar, text=user[5], bg='#ffffff',
-              font='Verdana 11').place(x=80, y=370)
-
-        # Separator object
-        separator = ttk.Separator(self.sidebar, orient='horizontal')
-        separator.place(x=0, y=610, width=300)
-
-        # Add Device
-        self.routerImage = PhotoImage(file='images/device.png').subsample(4, 4)
-        Button(self.sidebar, text="  Add Device", bg='#ffffff', font=("", 13, "bold"), bd=0, image=self.routerImage, compound=LEFT,
-               cursor='hand2', activebackground='#ffffff', command=self.add_device).place(x=50, y=620)
-
-        # Separator object
-        separator = ttk.Separator(self.sidebar, orient='horizontal')
-        separator.place(x=0, y=660, width=300)
-
-        # Settings
-        self.settingsImage = PhotoImage(
-            file='images/setting.png').subsample(2, 2)
-        Button(self.sidebar, text="Settings", bg='#ffffff', font=("", 13, "bold"), bd=0, image=self.settingsImage, compound=LEFT,
-               cursor='hand2', activebackground='#ffffff').place(x=10, y=670)
-
-        # Separator object
-        separator = ttk.Separator(self.sidebar, orient='vertical').place(
-            x=150, y=660, height=40)
-
-        # Logout
-        self.logoutImage = PhotoImage(file='images/logout.png').subsample(2, 2)
-        Button(self.sidebar, text="  Logout!  ", bg='#ffffff', font=("", 13, "bold"), bd=0, image=self.logoutImage, compound=LEFT,
-               cursor='hand2', activebackground='#ffffff', command=lambda: self.window.destroy()).place(x=170, y=670)
-
-        # =============================================================================
-        # ============= BODY ==========================================================
-        # =============================================================================
-
-        # Body Frame 1
-        self.devices()
-
         # Body Frame 2
         config = "You will see all the activity done by you here in this window"
-
-        self.output(config)
-
-        self.window.mainloop()
+        Dashboard.output(config)
 
     def show_time(self):
         self.time = time.strftime("%H:%M:%S")
@@ -621,32 +620,30 @@ class Dashboard:
             newWindow = Frame(window, bg='black', padx=20, pady=20)
             newWindow.place(x=450, y=20, width=550, height=300)
 
-            trv_history = ttk.Treeview(newWindow, selectmode='browse')
-            trv_history.grid(row=1, column=0, columnspan=3, padx=10, pady=10)
-            # Number of rows to display, default is 10
-            trv_history['height'] = 11
+            trv_history = ttk.Treeview(newWindow, selectmode='none', height=11)
+            trv_history.grid(row=0, column=0, columnspan=3, padx=10, pady=10)
+
             trv_history['show'] = 'headings'
             trv_history["columns"] = [1, 2, 3, 4]  # column identifiers
-            trv_history.column(1, width=80, anchor='c')
-            trv_history.heading(1, text='Sr. No.')
+            trv_history.column(1, width=100, anchor='c')
+            trv_history.heading(1, text='Action Done')
             trv_history.column(2, width=120, anchor='c')
             trv_history.heading(2, text='Configured')
             trv_history.column(3, width=120, anchor='c')
             trv_history.heading(3, text='Destination')
-            trv_history.column(4, width=150, anchor='c')
+            trv_history.column(4, width=120, anchor='c')
             trv_history.heading(4, text='Last Modify')
 
-            count = 0
             for data in Database().getconfig(device[0]):
-                count = count + 1
-                lst = [count, data[2], data[3], datetime.strptime(
-                    data[4], '%Y-%m-%d %H:%M:%S.%f').date()]
+                lst = [data[4], data[2], data[3], datetime.strptime(
+                    data[5], '%Y-%m-%d %H:%M:%S.%f').date()]
                 trv_history.insert("", 'end', values=lst)
 
             vs = ttk.Scrollbar(newWindow, orient='vertical',
                                command=trv_history.yview)
-            vs.grid(row=1, column=3, sticky='ns', pady=10)
+            vs.grid(row=0, column=3, sticky='ns', pady=10)
             trv_history.config(yscrollcommand=vs.set)
+
         Button(newWindow, text='Configured History', width=16, height=1, bg='light green',
                command=lambda: configHistory(newWindow, data)).place(x=170, y=290)
 
@@ -673,7 +670,7 @@ class Dashboard:
 
         newWindow.mainloop()
 
-    def output(self, result):
+    def output(result):
         global CLI
         CLI.config(state="normal")
         CLI.insert(END, result)
@@ -682,108 +679,103 @@ class Dashboard:
         CLI.see("end")
 
 
+class Routing():
+
+    def __init__(self, config, window, commands) -> None:
+        self.config = config
+        self.window = window
+        self.commands = commands
+        self.output = " None "
+        self.flag = threading.Event()
+
+        self.newWindow = Frame(self.window, width=280, bg="black")
+        self.newWindow.place(x=120, y=230, height=30)
+        self.progress_bar = ttk.Progressbar(
+            self.newWindow, orient="horizontal", length=280, mode="indeterminate")
+        self.progress_bar.pack()
+        self.progress_bar.start()
+        # start executing f in another thread
+        threading.Thread(target=self.telnet, daemon=True).start()
+        # Start the tkinter loop
+        self.progress()
+
+    def progress(self):
+        # If the flag is set (function f has completed):
+        if self.flag.is_set():
+            # Stop the progressbar and destroy the toplevel
+            Dashboard.output(self.output)
+            self.progress_bar.stop()
+            self.newWindow.destroy()
+
+        else:
+            # Schedule another call to progress_check in 100 milliseconds
+            self.progress_bar.after(100, self.progress)
+
+    def ssh(self):
+        device = {
+            'device_type': "autodetect",
+            'host': self.config['IP'],
+            'username': self.config['Username'],
+            'password': self.config['Password'],
+            'secret': self.config['Enable'],
+        }
+        try:
+            device['device_type'] = SSHDetect(**device).autodetect()
+            with ConnectHandler(**device) as ssh:
+                # ssh.enable()
+                self.output = ssh.send_config_set(self.commands)
+            Database().saveconfig(self.config)
+            messagebox.showinfo(
+                "Success", "Configured Successfully", parent=self.window)
+
+        except (NetmikoTimeoutException, NetmikoAuthenticationException) as error:
+            messagebox.showerror("Error", error, parent=self.window)
+            self.output = error
+        finally:
+            self.flag.set()
+
+    def telnet(self):
+        def to_bytes(line): return line.encode('ascii') + b"\n"
+        try:
+            with telnetlib.Telnet(self.config['IP']) as telnet:
+                telnet.read_until(b"Username")
+                telnet.write(to_bytes(self.config['Username']))
+                telnet.read_until(b"Password")
+                telnet.write(to_bytes(self.config['Password']))
+                index, m, output = telnet .expect([b">", b"#"])
+                if index == 0:
+                    telnet.write(b"enable \n")
+                    telnet.read_until(b"Password")
+                    telnet.write(to_bytes(self.config['Enable']))
+                    telnet.read_until(b"#", timeout=5)
+                    telnet.write(b"terminal length 0\n")
+                telnet.read_until(b"#", timeout=5)
+                time.sleep(3)
+                telnet.read_very_eager()
+
+                telnet.write(to_bytes("configure terminal"))
+                for command in self.commands:
+                    telnet.write(to_bytes(command))
+                    self.output = telnet.read_until(b"#").decode("utf-8")
+
+                telnet.write(to_bytes("end"))
+                self.output = telnet.read_all().decode('ascii')
+                self.output = self.output.replace("\r\n", "\n")
+            Database().saveconfig(self.config)
+            messagebox.showinfo(
+                "Success", "Configured Successfully", parent=self.window)
+        except TimeoutError as error:
+            messagebox.showerror("Error", error, parent=self.window)
+            self.output = error
+        finally:
+            self.flag.set()
+
+
 class AddConfig (Dashboard):
 
     def __init__(self, window, device):
         self.device = device
         self.window = window
-
-    def routing(self, config, window, commands):
-        # create a flag to stop the progress bar
-        stop_flag = threading.Event()
-        global output
-        output = ""
-
-        def ssh():
-            global output
-            device = {
-                'device_type': "autodetect",
-                'host': config['IP'],
-                'username': config['Username'],
-                'password': config['Password'],
-                'secret': config['Enable'],
-            }
-            try:
-                device['device_type'] = SSHDetect(**device).autodetect()
-                with ConnectHandler(**device) as ssh:
-                    # ssh.enable()
-                    output = ssh.send_config_set(commands)
-                Database().saveconfig(config)
-                messagebox.showinfo(
-                    "Success", "Configured Successfully", parent=window)
-
-            except (NetmikoTimeoutException, NetmikoAuthenticationException) as error:
-                messagebox.showerror("Error", error, parent=window)
-                output = error
-            finally:
-                stop_flag.set()
-
-        def telnet():
-            global output
-            def to_bytes(line): return line.encode('ascii') + b"\n"
-            try:
-                with telnetlib.Telnet(config['IP']) as telnet:
-                    telnet.read_until(b"Username")
-                    telnet.write(to_bytes(config['Username']))
-                    telnet.read_until(b"Password")
-                    telnet.write(to_bytes(config['Password']))
-                    index, m, output = telnet .expect([b">", b"#"])
-                    if index == 0:
-                        telnet.write(b"enable \n")
-                        telnet.read_until(b"Password")
-                        telnet.write(to_bytes(config['Enable']))
-                        telnet.read_until(b"#", timeout=5)
-                        telnet.write(b"terminal length 0\n")
-                    telnet.read_until(b"#", timeout=5)
-                    time.sleep(3)
-                    telnet.read_very_eager()
-                    # result = {}
-                    telnet.write(to_bytes("configure terminal"))
-                    for command in commands:
-                        telnet.write(to_bytes(command))
-                        output = telnet.read_until(b"#").decode("utf-8")
-                        # result [command] = output. replace("'\r\n","\n")
-                    telnet.write(to_bytes("end"))
-                    telnet.write(to_bytes("show running-config"))
-                    output = telnet.read_until(b"#", timeout=5).decode("utf-8")
-                    output = telnet.read_until(b"#", timeout=5).decode("utf-8")
-                    output = output.replace("\r\n", "\n")
-                Database().saveconfig(config)
-                messagebox.showinfo(
-                    "Success", "Configured Successfully", parent=window)
-            except TimeoutError as error:
-                messagebox.showerror("Error", error, parent=window)
-                output = error
-            finally:
-                stop_flag.set()
-
-        progress_bar_window = Frame(window, width=280, bg="black")
-        progress_bar_window.place(x=120, y=230, height=30)
-
-        progress_bar = ttk.Progressbar(progress_bar_window, orient="horizontal",
-                                       length=280, mode="indeterminate")
-
-        # progress_bar.config()
-        progress_bar.pack()
-        progress_bar.start()
-
-        def progress_check():
-            # If the flag is set (function f has completed):
-            if stop_flag.is_set():
-                global output
-                # Stop the progressbar and destroy the toplevel
-                self.output(output)
-                progress_bar.stop()
-                progress_bar_window.destroy()
-
-            else:
-                # Schedule another call to progress_check in 100 milliseconds
-                progress_bar.after(100, progress_check)
-
-        # start executing f in another thread
-        threading.Thread(target=telnet, daemon=True).start()
-        # Start the tkinter loop
-        progress_check()
 
     def vlan(self):
         newWindow = Frame(self.window, bg='black', padx=20, pady=20)
@@ -821,12 +813,12 @@ class AddConfig (Dashboard):
                         'Enable': self.device[9],
                         'IP': self.device[3],
                         'Destination': inter.get(),
-                        'Activity' : 'Add',
+                        'Activity': 'Add',
                         'Last_Modify': datetime.today()
                     }
                     vlan = [f"vlan {vlanID.get()}", f"name {name.get()}", "exit",
                             f"interface {inter.get()}", f"switchport access vlan {vlanID.get()}"]
-                    self.routing(config, newWindow, vlan)
+                    Routing(config, newWindow, vlan)
                 else:
                     messagebox.showerror(
                         "Error", "Information can not be left blank", parent=newWindow)
@@ -875,12 +867,12 @@ class AddConfig (Dashboard):
                     'Enable': self.device[9],
                     'IP': self.device[3],
                     'Destination': destIP.get(),
-                    'Activity' : 'Add',
+                    'Activity': 'Add',
                     'Last_Modify': datetime.today()
                 }
                 static = [
                     f"ip route {destIP.get()} {destSub.get()} {nextHop.get()}"]
-                self.output(self.routing(config, newWindow, static))
+                Routing(config, newWindow, static)
             except ValueError as e:
                 messagebox.showerror("Error", e, parent=newWindow)
 
@@ -919,12 +911,12 @@ class AddConfig (Dashboard):
                     'Enable': self.device[9],
                     'IP': self.device[3],
                     'Destination': networkIP.get(),
-                    'Activity' : 'Add',
+                    'Activity': 'Add',
                     'Last_Modify': datetime.today()
                 }
                 rip = [
                     "router rip", f"version {version.get()}", f"network {networkIP.get()}", "no auto-summary"]
-                self.output(self.routing(config, newWindow, rip))
+                Routing(config, newWindow, rip)
             except ValueError as e:
                 messagebox.showerror("Error", e, parent=newWindow)
 
@@ -963,12 +955,12 @@ class AddConfig (Dashboard):
                     'Enable': self.device[9],
                     'IP': self.device[3],
                     'Destination': networkIP.get(),
-                    'Activity' : 'Add',
+                    'Activity': 'Add',
                     'Last_Modify': datetime.today()
                 }
                 eigrp = [
                     f"router eigrp {as_number.get()}", f"network {networkIP.get()}"]
-                self.output(self.routing(config, newWindow, eigrp))
+                Routing(config, newWindow, eigrp)
             except ValueError as e:
                 messagebox.showerror("Error", e, parent=newWindow)
 
@@ -1019,12 +1011,12 @@ class AddConfig (Dashboard):
                     'Enable': self.device[9],
                     'IP': self.device[3],
                     'Destination': networkIP.get(),
-                    'Activity' : 'Add',
+                    'Activity': 'Add',
                     'Last_Modify': datetime.today()
                 }
                 ospf = [f"router ospf {processID.get()}",
                         f"network {networkIP.get()} {networkSub.get()} area {area.get()}", "no shut"]
-                self.output(self.routing(config, newWindow, ospf))
+                Routing(config, newWindow, ospf)
             except ValueError as e:
                 messagebox.showerror("Error", e, parent=newWindow)
 
@@ -1081,12 +1073,12 @@ class AddConfig (Dashboard):
                     'Enable': self.device[9],
                     'IP': self.device[3],
                     'Destination': dest.get(),
-                    'Activity' : 'Add',
+                    'Activity': 'Add',
                     'Last_Modify': datetime.today()
                 }
                 vpn = [f"interface tunnel {tunnel.get()}",
                        f"ip address {ip.get()} {sub.get()}", f"tunnel source {source.get()}", f"tunnel destination {dest.get()}"]
-                self.output(self.routing(config, newWindow, vpn))
+                Routing(config, newWindow, vpn)
             except ValueError as e:
                 messagebox.showerror("Error", e, parent=newWindow)
 
@@ -1101,103 +1093,6 @@ class RemoveConfig (Dashboard):
         self.device = device
         self.window = window
 
-    def routing(self, config, window, commands):
-        # create a flag to stop the progress bar
-        stop_flag = threading.Event()
-        global output
-        output = ""
-
-        def ssh():
-            global output
-            device = {
-                'device_type': "autodetect",
-                'host': config['IP'],
-                'username': config['Username'],
-                'password': config['Password'],
-                'secret': config['Enable'],
-            }
-            try:
-                device['device_type'] = SSHDetect(**device).autodetect()
-                with ConnectHandler(**device) as ssh:
-                    # ssh.enable()
-                    output = ssh.send_config_set(commands)
-                Database().saveconfig(config)
-                messagebox.showinfo(
-                    "Success", "Configured Successfully", parent=window)
-
-            except (NetmikoTimeoutException, NetmikoAuthenticationException) as error:
-                messagebox.showerror("Error", error, parent=window)
-                output = error
-            finally:
-                stop_flag.set()
-
-        def telnet():
-            global output
-            def to_bytes(line): return line.encode('ascii') + b"\n"
-            try:
-                with telnetlib.Telnet(config['IP']) as telnet:
-                    telnet.read_until(b"Username")
-                    telnet.write(to_bytes(config['Username']))
-                    telnet.read_until(b"Password")
-                    telnet.write(to_bytes(config['Password']))
-                    index, m, output = telnet .expect([b">", b"#"])
-                    if index == 0:
-                        telnet.write(b"enable \n")
-                        telnet.read_until(b"Password")
-                        telnet.write(to_bytes(config['Enable']))
-                        telnet.read_until(b"#", timeout=5)
-                        telnet.write(b"terminal length 0\n")
-                    telnet.read_until(b"#", timeout=5)
-                    time.sleep(3)
-                    telnet.read_very_eager()
-                    # result = {}
-                    telnet.write(to_bytes("configure terminal"))
-                    for command in commands:
-                        telnet.write(to_bytes(command))
-                        output = telnet.read_until(b"#").decode("utf-8")
-                        # result [command] = output. replace("'\r\n","\n")
-                    telnet.write(to_bytes("end"))
-                    telnet.write(to_bytes("show running-config"))
-                    output = telnet.read_until(b"#", timeout=5).decode("utf-8")
-                    output = telnet.read_until(b"#", timeout=5).decode("utf-8")
-                    output = output.replace("\r\n", "\n")
-                Database().saveconfig(config)
-                messagebox.showinfo(
-                    "Success", "Configured Successfully", parent=window)
-            except TimeoutError as error:
-                messagebox.showerror("Error", error, parent=window)
-                output = error
-            finally:
-                stop_flag.set()
-
-        progress_bar_window = Frame(window, width=280, bg="black")
-        progress_bar_window.place(x=120, y=230, height=30)
-
-        progress_bar = ttk.Progressbar(progress_bar_window, orient="horizontal",
-                                       length=280, mode="indeterminate")
-
-        # progress_bar.config()
-        progress_bar.pack()
-        progress_bar.start()
-
-        def progress_check():
-            # If the flag is set (function f has completed):
-            if stop_flag.is_set():
-                global output
-                # Stop the progressbar and destroy the toplevel
-                self.output(output)
-                progress_bar.stop()
-                progress_bar_window.destroy()
-
-            else:
-                # Schedule another call to progress_check in 100 milliseconds
-                progress_bar.after(100, progress_check)
-
-        # start executing f in another thread
-        threading.Thread(target=telnet, daemon=True).start()
-        # Start the tkinter loop
-        progress_check()
-
     def vlan(self):
         newWindow = Frame(self.window, bg='black', padx=20, pady=20)
         newWindow.place(x=450, y=20, width=550, height=300)
@@ -1234,12 +1129,12 @@ class RemoveConfig (Dashboard):
                         'Enable': self.device[9],
                         'IP': self.device[3],
                         'Destination': inter.get(),
-                        'Activity' : 'Remove',
+                        'Activity': 'Remove',
                         'Last_Modify': datetime.today()
                     }
                     vlan = [f"interface {inter.get()}", f"switchport access vlan 1", "exit",
                             f"no vlan {vlanID.get()}"]
-                    self.routing(config, newWindow, vlan)
+                    Routing(config, newWindow, vlan)
                 else:
                     messagebox.showerror(
                         "Error", "Information can not be left blank", parent=newWindow)
@@ -1248,7 +1143,7 @@ class RemoveConfig (Dashboard):
 
         # # button config
         Button(newWindow, text="Config", font='Verdana 10 bold',
-               width=30, bg="light blue", command=check).place(x=120, y=230)
+               width=30, bg='#FF5050', command=check).place(x=120, y=230)
 
     def static(self):
         newWindow = Frame(self.window, bg='black', padx=20, pady=20)
@@ -1288,18 +1183,18 @@ class RemoveConfig (Dashboard):
                     'Enable': self.device[9],
                     'IP': self.device[3],
                     'Destination': destIP.get(),
-                    'Activity' : 'Remove',
+                    'Activity': 'Remove',
                     'Last_Modify': datetime.today()
                 }
                 static = [
-                    f"ip route {destIP.get()} {destSub.get()} {nextHop.get()}"]
-                self.output(self.routing(config, newWindow, static))
+                    f"no ip route {destIP.get()} {destSub.get()} {nextHop.get()}"]
+                Routing(config, newWindow, static)
             except ValueError as e:
                 messagebox.showerror("Error", e, parent=newWindow)
 
-        # # button config
+         # # button config
         Button(newWindow, text="Config", font='Verdana 10 bold',
-               width=30, bg="light blue", command=check).place(x=120, y=230)
+               width=30, bg='#FF5050', command=check).place(x=120, y=230)
 
     def rip(self):
         newWindow = Frame(self.window, bg='black', padx=20, pady=20)
@@ -1308,17 +1203,11 @@ class RemoveConfig (Dashboard):
         # heading label
         Label(newWindow, text="Network IP Address :", font='Verdana 10 bold',
               foreground="white", bg="black").place(x=30, y=40)
-        Label(newWindow, text="Version :", font='Verdana 10 bold',
-              foreground="white", bg="black").place(x=30, y=90)
-
         # Entry Box
         networkIP = StringVar()
-        version = StringVar()
 
         Entry(newWindow, width=20, textvariable=networkIP,
               font='Verdana 10 bold').place(x=250, y=40)
-        Entry(newWindow, width=20, textvariable=version,
-              font='Verdana 10 bold').place(x=250, y=90)
 
         def check():
             try:
@@ -1332,18 +1221,17 @@ class RemoveConfig (Dashboard):
                     'Enable': self.device[9],
                     'IP': self.device[3],
                     'Destination': networkIP.get(),
-                    'Activity' : 'Remove',
+                    'Activity': 'Remove',
                     'Last_Modify': datetime.today()
                 }
-                rip = [
-                    "router rip", f"version {version.get()}", f"network {networkIP.get()}", "no auto-summary"]
-                self.output(self.routing(config, newWindow, rip))
+                rip = ["router rip", f"no network {networkIP.get()}"]
+                Routing(config, newWindow, rip)
             except ValueError as e:
                 messagebox.showerror("Error", e, parent=newWindow)
 
-        # # button config
+         # # button config
         Button(newWindow, text="Config", font='Verdana 10 bold',
-               width=30, bg="light blue", command=check).place(x=120, y=230)
+               width=30, bg='#FF5050', command=check).place(x=120, y=230)
 
     def eigrp(self):
         newWindow = Frame(self.window, bg='black', padx=20, pady=20)
@@ -1376,19 +1264,18 @@ class RemoveConfig (Dashboard):
                     'Enable': self.device[9],
                     'IP': self.device[3],
                     'Destination': networkIP.get(),
-                    'Activity' : 'Remove',
+                    'Activity': 'Remove',
                     'Last_Modify': datetime.today()
                 }
                 eigrp = [
-                    f"router eigrp {as_number.get()}", f"network {networkIP.get()}"]
-                self.output(self.routing(config, newWindow, eigrp))
+                    f"router eigrp {as_number.get()}", f"no network {networkIP.get()}"]
+                Routing(config, newWindow, eigrp)
             except ValueError as e:
                 messagebox.showerror("Error", e, parent=newWindow)
 
         # # button config
-        # # button config
         Button(newWindow, text="Config", font='Verdana 10 bold',
-               width=30, bg="light blue", command=check).place(x=120, y=230)
+               width=30, bg='#FF5050', command=check).place(x=120, y=230)
 
     def ospf(self):
         newWindow = Frame(self.window, bg='black', padx=20, pady=20)
@@ -1432,18 +1319,18 @@ class RemoveConfig (Dashboard):
                     'Enable': self.device[9],
                     'IP': self.device[3],
                     'Destination': networkIP.get(),
-                    'Activity' : 'Remove',
+                    'Activity': 'Remove',
                     'Last_Modify': datetime.today()
                 }
                 ospf = [f"router ospf {processID.get()}",
-                        f"network {networkIP.get()} {networkSub.get()} area {area.get()}", "no shut"]
-                self.output(self.routing(config, newWindow, ospf))
+                        f"no network {networkIP.get()} {networkSub.get()} area {area.get()}", "shut", "no shut"]
+                Routing(config, newWindow, ospf)
             except ValueError as e:
                 messagebox.showerror("Error", e, parent=newWindow)
 
-        # # button config
+         # # button config
         Button(newWindow, text="Config", font='Verdana 10 bold',
-               width=30, bg="light blue", command=check).place(x=120, y=230)
+               width=30, bg='#FF5050', command=check).place(x=120, y=230)
 
     def vpn(self):
         newWindow = Frame(self.window, bg='black', padx=20, pady=20)
@@ -1452,39 +1339,14 @@ class RemoveConfig (Dashboard):
         # heading label
         Label(newWindow, text="Tunnel No. :", font='Verdana 10 bold',
               fg="white", bg="black").place(x=30, y=40)
-        Label(newWindow, text="IP Address :", font='Verdana 10 bold',
-              fg="white", bg="black").place(x=30, y=70)
-        Label(newWindow, text="Subnet Mask :", font='Verdana 10 bold',
-              fg="white", bg="black").place(x=30, y=100)
-        Label(newWindow, text="Source Address :", font='Verdana 10 bold',
-              fg="white", bg="black").place(x=30, y=130)
-        Label(newWindow, text="Destination Address :", font='Verdana 10 bold',
-              fg="white", bg="black").place(x=30, y=160)
-
         # Entry Box
         tunnel = StringVar()
-        ip = StringVar()
-        sub = StringVar()
-        source = StringVar()
-        dest = StringVar()
 
         Entry(newWindow, width=20, textvariable=tunnel,
               font='Verdana 10 bold').place(x=250, y=40)
-        Entry(newWindow, width=20, textvariable=ip,
-              font='Verdana 10 bold').place(x=250, y=70)
-        Entry(newWindow, width=20, textvariable=sub,
-              font='Verdana 10 bold').place(x=250, y=100)
-        Entry(newWindow, width=20, textvariable=source,
-              font='Verdana 10 bold').place(x=250, y=130)
-        Entry(newWindow, width=20, textvariable=dest,
-              font='Verdana 10 bold').place(x=250, y=160)
 
         def check():
             try:
-                IPv4Network(ip.get())
-                IPv4Address(sub.get())
-                IPv4Address(source.get())
-                IPv4Address(dest.get())
                 config = {
                     'deviceID': self.device[0],
                     'Name': 'VPN',
@@ -1493,22 +1355,21 @@ class RemoveConfig (Dashboard):
                     'Password': self.device[8],
                     'Enable': self.device[9],
                     'IP': self.device[3],
-                    'Destination': dest.get(),
-                    'Activity' : 'Remove',
+                    'Destination': tunnel.get(),
+                    'Activity': 'Remove',
                     'Last_Modify': datetime.today()
                 }
-                vpn = [f"interface tunnel {tunnel.get()}",
-                       f"ip address {ip.get()} {sub.get()}", f"tunnel source {source.get()}", f"tunnel destination {dest.get()}"]
-                self.output(self.routing(config, newWindow, vpn))
+                vpn = [f"remove interface tunnel {tunnel.get()}"]
+                self.output(Routing(config, newWindow, vpn))
             except ValueError as e:
                 messagebox.showerror("Error", e, parent=newWindow)
 
-        # # button config
+         # # button config
         Button(newWindow, text="Config", font='Verdana 10 bold',
-               width=30, bg="light blue", command=check).place(x=120, y=230)
+               width=30, bg='#FF5050', command=check).place(x=120, y=230)
 
 
 if __name__ == '__main__':
 
-    Dashboard(Tk(), Database().getUser('kk_pl', 'K2545'))
-    # Login()
+    # Dashboard(Tk(), Database().getUser('kk_pl', 'K2545'))
+    Login()
