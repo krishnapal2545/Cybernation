@@ -1,6 +1,6 @@
 from tkinter import *
 from tkinter import ttk, messagebox
-from PIL import ImageTk
+from PIL import ImageTk, Image
 from datetime import *
 import sqlite3
 import time
@@ -9,6 +9,8 @@ import telnetlib
 from ipaddress import *
 from netmiko import (ConnectHandler, SSHDetect, NetmikoTimeoutException,
                      NetmikoAuthenticationException)
+from img2byte import *
+
 
 
 class Database:
@@ -106,7 +108,7 @@ class Register:
         self.window.minsize(width=500,  height=500)
 
         # Window Icon Photo
-        icon = PhotoImage(file='images\\icon.png')
+        icon = PhotoImage(data= iconimg,format='png')
         self.window.iconphoto(True, icon)
 
         # heading label
@@ -198,7 +200,7 @@ class Login:
         # self.window.config(background='white')
 
         # Window Icon Photo
-        icon = PhotoImage(file='images\\icon.png')
+        icon = PhotoImage(data= iconimg,format='png')
         self.window.iconphoto(True, icon)
 
         # heading label
@@ -263,7 +265,7 @@ class Dashboard:
         self.window.config(background='#eff5f6')
 
         # Window Icon Photo
-        icon = PhotoImage(file='images\\icon.png')
+        icon = PhotoImage(data= iconimg,format='png')
         self.window.iconphoto(True, icon)
 
         # ================== HEADER ====================================================
@@ -283,7 +285,7 @@ class Dashboard:
             x=0, y=0, width=300, height=700)
 
         # date and Time
-        self.clock_image = PhotoImage(file="images/time.png")
+        self.clock_image = PhotoImage(data= timeimg,format='png')
         self.date_time_image = Label(
             newWindow, image=self.clock_image, bg="white")
         self.date_time_image.place(x=75, y=30)
@@ -294,7 +296,11 @@ class Dashboard:
 
         # logo
         gender = self.user[3]
-        self.logoImage = ImageTk.PhotoImage(file=f'images/{gender}.png')
+        if gender == 'Male':
+            self.logoImage = PhotoImage(data= Male,format='png')
+        else:
+            self.logoImage = PhotoImage(data= Female,format='png')
+
         self.logo = Label(newWindow, image=self.logoImage,
                           bg='#ffffff').place(x=60, y=80)
 
@@ -304,22 +310,21 @@ class Dashboard:
             "", 15, "bold")).place(x=80, y=240)
 
         # Gender
-        self.gen_img = PhotoImage(file='images/gender.png').subsample(2, 2)
+        self.gen_img = PhotoImage(data= genderimg,format='png').subsample(2, 2)
         Label(newWindow, image=self.gen_img,
               bg='#ffffff').place(x=30, y=290)
         Label(newWindow, text=self.user[3], bg='#ffffff',
               font='Verdana 11 ').place(x=80, y=290)
 
         # Organi
-        self.org_img = PhotoImage(file='images/org.png').subsample(2, 2)
+        self.org_img = PhotoImage(data= org,format='png').subsample(2, 2)
         Label(newWindow, image=self.org_img,
               bg='#ffffff').place(x=30, y=330)
         Label(newWindow, text=self.user[4], bg='#ffffff',
               font='Verdana 11 ').place(x=80, y=330)
 
         # Contact
-        self.contact_img = PhotoImage(
-            file='images/contact.png').subsample(2, 2)
+        self.contact_img = PhotoImage(data= contact,format='png').subsample(2, 2)
         Label(newWindow, image=self.contact_img,
               bg='#ffffff').place(x=30, y=370)
         Label(newWindow, text=self.user[5], bg='#ffffff',
@@ -330,7 +335,7 @@ class Dashboard:
         separator.place(x=0, y=610, width=300)
 
         # Add Device
-        self.routerImage = PhotoImage(file='images/device.png').subsample(3, 3)
+        self.routerImage = PhotoImage(data= device,format='png').subsample(3, 3)
         Button(newWindow, text="  Add Device", bg='#ffffff', font=("", 13, "bold"), bd=0, image=self.routerImage, compound=LEFT,
                cursor='hand2', activebackground='#ffffff', command=self.add_device).place(x=70, y=620)
 
@@ -339,8 +344,8 @@ class Dashboard:
         separator.place(x=0, y=660, width=300)
 
         # Close Window
-        self.settingsImage = PhotoImage(file='images/close.png')
-        Button(newWindow, text=" Close ", bg='#ffffff', font=("", 13, "bold"), bd=0, image=self.settingsImage, compound=LEFT,
+        self.closeImage = PhotoImage(data= close,format='png')
+        Button(newWindow, text=" Close ", bg='#ffffff', font=("", 13, "bold"), bd=0, image=self.closeImage, compound=LEFT,
                cursor='hand2', activebackground='#ffffff', command=lambda: self.window.destroy()).place(x=30, y=670)
 
         # Separator object
@@ -351,7 +356,7 @@ class Dashboard:
             self.window.destroy()
             Login()
         # Logout
-        self.logoutImage = PhotoImage(file='images/logout.png')
+        self.logoutImage = PhotoImage(data= logot,format='png')
         Button(newWindow, text=" Logout  ", bg='#ffffff', font=("", 13, "bold"), bd=0, image=self.logoutImage, compound=LEFT,
                cursor='hand2', activebackground='#ffffff', command=logout).place(x=180, y=670)
 
@@ -441,7 +446,7 @@ class Dashboard:
                     cursor='hand2', activebackground='#ffffff')
         bb.place(x=50, y=620)
         # image
-        device_img = PhotoImage(file='images/device.png')
+        device_img = PhotoImage(data= device,format='png')
         device_info = Label(newWindow, image=device_img, bg='white')
         device_info.pack()
         device_info.place(x=420, y=15)
@@ -519,6 +524,7 @@ class Dashboard:
                         "", 'end', iid=en2.get(), values=lst)
                     messagebox.showinfo(
                         "Success", "Device Added Successfull", parent=newWindow)
+                    Dashboard.output(f"Successfully Added Device {en1.get()} IP - {en2.get()} Type - {en5.get()}")
                     newWindow.destroy()
                 else:
                     messagebox.showerror(
@@ -546,16 +552,21 @@ class Dashboard:
                 IP = self.trv_device.selection()[0]
                 self.trv_device.delete(self.trv_device.selection())
                 Database().deleteDevice(IP)
+                Dashboard.output(f"Successfully Deleted Device  IP - {IP} ")
                 newWindow.destroy()
 
-        delete_img = PhotoImage(file=f'images/delete.png')
+        delete_img = PhotoImage(data= deleteimg,format='png')
         Button(newWindow, image=delete_img, bg="white",
                command=delete, border=0).place(x=380, y=20)
 
         inWindow = Frame(newWindow, padx=20, pady=20)
         inWindow.place(x=450, y=20, width=550, height=300)
         # image
-        device_img = PhotoImage(file=f'images/{data[6]}.png')
+        if data[6] == 'Router':
+            device_img = PhotoImage(data= router,format='png')
+        else:
+            device_img = PhotoImage(data= switch,format='png')
+
         device_info = Label(newWindow, image=device_img)
         device_info.pack()
         device_info.place(x=600, y=30)
@@ -1362,6 +1373,6 @@ class RemoveConfig (Dashboard):
 
 
 if __name__ == '__main__':
-
+    
     # Dashboard(Tk(), Database().getUser('kk_pl', 'K2545'))
     Login()
