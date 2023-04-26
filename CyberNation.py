@@ -220,10 +220,8 @@ class Login:
 
         # # button login and clear
 
-        Button(self.window, text="Login", font='Verdana 10 bold',
+        Button(self.window, text="Login", font='Verdana 10 bold',width=20,
                command=self.login).place(x=200, y=293)
-        Button(self.window, text="Clear", font='Verdana 10 bold',
-               command=self.clear).place(x=260, y=293)
 
         # # signup button
 
@@ -232,22 +230,16 @@ class Login:
 
         self.window.mainloop()
 
-    def clear(self):
-        self.userentry.delete(0, END)
-        self.passentry.delete(0, END)
-
     def login(self):
         if self.user_name.get() == "" or self.password.get() == "":
             messagebox.showerror(
-                "Error", "Enter User Name And Password", parent=self.window)
+                "Error", "Enter Username And Password", parent=self.window)
         else:
             try:
-                # user = cursor.execute("SELECT * FROM Users WHERE Username = ? AND Password = ?",(str(self.user_name.get()),str(self.password.get()),)).fetchone()
                 user = Database().getUser(self.user_name.get(), self.password.get())
                 if user == None:
                     messagebox.showerror(
                         "Error", "Invalid User Name And Password", parent=self.window)
-                    self.clear()
                 else:
                     self.window.destroy()
                     Dashboard(Tk(), user)
