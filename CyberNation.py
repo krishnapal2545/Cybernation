@@ -1,102 +1,15 @@
 from tkinter import *
 from tkinter import ttk, messagebox
-from PIL import ImageTk, Image
 from datetime import *
-import sqlite3
+from manage import Database
+import time
+from img2byte import *
 import time
 import threading
 import telnetlib
 from ipaddress import *
 from netmiko import (ConnectHandler, SSHDetect, NetmikoTimeoutException,
                      NetmikoAuthenticationException)
-from img2byte import *
-
-
-
-class Database:
-
-    def __init__(self):
-        self.conn = sqlite3.connect('Cybernation.db')
-        self.cursor = self.conn.cursor()
-
-        self.conn.execute('''
-        CREATE TABLE IF NOT EXISTS Users(
-        ID INTEGER PRIMARY KEY AUTOINCREMENT,
-        Fname           TEXT     NOT NULL,
-        Lname           TEXT     NOT NULL,
-        Gender          TEXT     NOT NULL,
-        Org             TEXT     NOT NULL,
-        Phone           INT      NOT NULL,
-        Username        TEXT     NOT NULL,
-        Password        TEXT     NOT NULL);''')
-
-        self.conn.execute('''
-        CREATE TABLE IF NOT EXISTS Devices(
-        ID INTEGER PRIMARY KEY AUTOINCREMENT,
-        UserID         INTEGER  NOT NULL,
-        Name           TEXT     NOT NULL,    
-        IP             TEXT     NOT NULL   UNIQUE,
-        Subnet         TEXT     NOT NULL,
-        Description    TEXT     NOT NULL,
-        Type           TEXT     NOT NULL,
-        Username       TEXT     NOT NULL,
-        Password       TEXT     NOT NULL,
-        Enable         TEXT     NOT NULL,
-        Device_Type    TEXT     NOT NULL  DEFAULT 'autodetect',
-        Last_Modify    DATETIME NOT NULL);''')
-
-        self.conn.execute('''
-        CREATE TABLE IF NOT EXISTS Configs(
-        ID INTEGER PRIMARY KEY AUTOINCREMENT,
-        DeviceID           TEXT     NOT NULL,
-        Name               TEXT     NOT NULL,
-        Config             TEXT     NOT NULL,
-        Activity           TEXT     NOT NULL,
-        Last_Modify        DATETIME NOT NULL);''')
-
-    def saveUser(self, fname, lname, gen, org, phone, uname, passw):
-        self.conn.execute('''
-        INSERT INTO Users (Fname,Lname,Gender,Org,Phone,Username,Password) 
-        VALUES(?,?,?,?,?,?,?)''', (fname, lname, gen, org, phone, uname, passw))
-        self.conn.commit()
-
-    def getUser(self, uname, passw):
-        self.cursor.execute(
-            "SELECT * FROM Users WHERE Username = ? AND Password = ?", (uname, passw,))
-        return self.cursor.fetchone()
-
-    def savedevice(self, data):
-        self.conn.execute('''
-        INSERT INTO Devices (UserID,Name,IP,Subnet,Description,Type,Username,Password,Enable,Last_Modify) 
-        VALUES(?,?,?,?,?,?,?,?,?,?)''',
-                          (str(data['userID']), str(data['Name']), str(data['IP']), str(data['Subnet']), str(data['Description']), str(data['Type']), str(data['Username']), str(data['Password']), str(data['Enable']), str(data['Last_Modify'])))
-        self.conn.commit()
-
-    def getAlldevice(self, user):
-        self.cursor.execute(
-            "SELECT * FROM Devices WHERE UserID = ?", (user[0],))
-        return self.cursor.fetchall()
-
-    def getdevice(self, IP):
-        self.cursor.execute("SELECT * FROM Devices WHERE IP = ?", (IP,))
-        return self.cursor.fetchone()
-
-    def deleteDevice(self, IP):
-        self.cursor.execute("DELETE FROM Devices WHERE IP = ?", (IP,))
-        self.conn.commit()
-
-    def saveconfig(self, config):
-        self.conn.execute('''
-        INSERT INTO Configs (DeviceID, Name, Config, Activity ,Last_Modify) 
-        VALUES(?,?,?,?)''', (str(config['deviceID']), str(config['Name']), str(config['Destination']), str(config['Activity']), str(config['Last_Modify']),))
-        self.conn.execute('''
-        UPDATE Devices SET Last_Modify = ? WHERE ID = ?''', (datetime.today(), str(config['deviceID']),))
-        self.conn.commit()
-
-    def getconfig(self, deviceID):
-        self.cursor.execute(
-            "SELECT * FROM Configs WHERE DeviceID = ?", (deviceID,))
-        return self.cursor.fetchall()
 
 
 class Register:
@@ -190,7 +103,7 @@ class Register:
         Login()
 
 
-class Login:
+class Login():
 
     def __init__(self):
         self.window = Tk()
@@ -254,7 +167,7 @@ class Login:
         Register()
 
 
-class Dashboard:
+class Dashboard():
 
     def __init__(self, window, user):
         self.user = user
@@ -682,6 +595,7 @@ class Dashboard:
         CLI.see("end")
 
 
+
 class Routing():
 
     def __init__(self, config, window, commands) -> None:
@@ -762,12 +676,13 @@ class Routing():
                     self.output = telnet.read_until(b"#").decode("utf-8")
 
                 telnet.write(to_bytes("end"))
-                self.output = telnet.read_all().decode('ascii')
-                self.output = self.output.replace("\r\n", "\n")
+                self.output = telnet.read_until(b"#").decode("utf-8")
+                # self.output = telnet.read_all().decode('ascii')
+                # self.output = self.output.replace("\r\n", "\n")
             Database().saveconfig(self.config)
             messagebox.showinfo(
                 "Success", "Configured Successfully", parent=self.window)
-        except TimeoutError as error:
+        except Exception as error:
             messagebox.showerror("Error", error, parent=self.window)
             self.output = error
         finally:
@@ -1227,7 +1142,7 @@ class RemoveConfig (Dashboard):
                     'Activity': 'Remove',
                     'Last_Modify': datetime.today()
                 }
-                rip = ["router rip", f"no network {networkIP.get()}"]
+                rip = ["router rip", f"no network {networkIP.get()}","no auto-summary"]
                 Routing(config, newWindow, rip)
             except ValueError as e:
                 messagebox.showerror("Error", e, parent=newWindow)
@@ -1370,6 +1285,7 @@ class RemoveConfig (Dashboard):
          # # button config
         Button(newWindow, text="Config", font='Verdana 10 bold',
                width=30, bg='#FF5050', command=check).place(x=120, y=230)
+
 
 
 if __name__ == '__main__':
