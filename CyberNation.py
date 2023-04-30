@@ -450,6 +450,7 @@ class Dashboard():
         newWindow.mainloop()
 
     def deviceInfo(self, event):
+        global connect
         IP = self.trv_device.selection()[0]
         data = Database().getdevice(IP)
         newWindow = Frame(self.window, bg='white')
@@ -485,6 +486,36 @@ class Dashboard():
         device_info.place(x=600, y=30)
         Label(newWindow, text=data[6], font=(
             "arial", 20, 'bold')).place(x=680, y=280)
+        
+        #toggle buttons
+        self.telnet_img = PhotoImage(file='images/toggle-left.png')
+        self.ssh_img = PhotoImage(file='images/toggle-right.png')
+        
+        def change():
+            global connect
+            if connect == 0:
+                connect = 1
+                sshBtn()
+            else: 
+                connect = 0
+                telnetBtn()
+
+        def telnetBtn():
+            togglebtn = Button(newWindow,image=self.telnet_img,command= change, bd=0)
+            togglebtn.pack()
+            togglebtn.place(x=460,y=260)
+            Label(newWindow,text='Telnet',bg="black",fg='white', font='bold').place(x = 502,y = 272)
+            
+
+        
+        def sshBtn():
+            togglebtn = Button(newWindow,image=self.ssh_img,command= change, bd=0)
+            togglebtn.pack()
+            togglebtn.place(x=460,y=260)
+            Label(newWindow,text='SSH',bg="black",fg='white', font='bold').place(x = 480,y = 272)
+
+
+        telnetBtn()
 
         # A Label widget to show in toplevel
         Label(newWindow, text="Host Name : ", font=(
@@ -599,12 +630,13 @@ class Dashboard():
 class Routing():
 
     def __init__(self, config, window, commands) -> None:
+        global connect
         self.config = config
         self.window = window
         self.commands = commands
-        self.output = " None "
+        self.output = ""
         self.flag = threading.Event()
-
+        
         self.newWindow = Frame(self.window, width=280, bg="black")
         self.newWindow.place(x=120, y=230, height=30)
         self.progress_bar = ttk.Progressbar(
@@ -612,7 +644,10 @@ class Routing():
         self.progress_bar.pack()
         self.progress_bar.start()
         # start executing f in another thread
-        threading.Thread(target=self.telnet, daemon=True).start()
+        if connect == 1:
+            threading.Thread(target=self.ssh, daemon=True).start()
+        else:
+            threading.Thread(target=self.telnet, daemon=True).start()
         # Start the tkinter loop
         self.progress()
 
@@ -639,7 +674,7 @@ class Routing():
         try:
             device['device_type'] = SSHDetect(**device).autodetect()
             with ConnectHandler(**device) as ssh:
-                # ssh.enable()
+                ssh.enable()
                 self.output = ssh.send_config_set(self.commands)
             Database().saveconfig(self.config)
             messagebox.showinfo(
@@ -673,12 +708,10 @@ class Routing():
                 telnet.write(to_bytes("configure terminal"))
                 for command in self.commands:
                     telnet.write(to_bytes(command))
-                    self.output = telnet.read_until(b"#").decode("utf-8")
+                    self.output = self.output + telnet.read_until(b"#").decode("utf-8")
 
                 telnet.write(to_bytes("end"))
-                self.output = telnet.read_until(b"#").decode("utf-8")
-                # self.output = telnet.read_all().decode('ascii')
-                # self.output = self.output.replace("\r\n", "\n")
+                self.output = self.output + telnet.read_until(b"#").decode("utf-8")
             Database().saveconfig(self.config)
             messagebox.showinfo(
                 "Success", "Configured Successfully", parent=self.window)
@@ -1287,8 +1320,8 @@ class RemoveConfig (Dashboard):
                width=30, bg='#FF5050', command=check).place(x=120, y=230)
 
 
-
 if __name__ == '__main__':
-    
-    # Dashboard(Tk(), Database().getUser('kk_pl', 'K2545'))
-    Login()
+    global connect
+    connect = 0
+    Dashboard(Tk(), Database().getUser('kk_pl', 'K2545'))
+    # Login()
