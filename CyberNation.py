@@ -3,7 +3,7 @@ from tkinter import ttk, messagebox
 from datetime import *
 from manage import Database
 import time
-from img2byte import *
+from byteimg import *
 import time
 import threading
 import telnetlib
@@ -21,7 +21,7 @@ class Register:
         self.window.minsize(width=500,  height=500)
 
         # Window Icon Photo
-        icon = PhotoImage(data= iconimg,format='png')
+        icon = PhotoImage(data=iconimg, format='png')
         self.window.iconphoto(True, icon)
 
         # heading label
@@ -113,7 +113,7 @@ class Login():
         # self.window.config(background='white')
 
         # Window Icon Photo
-        icon = PhotoImage(data= iconimg,format='png')
+        icon = PhotoImage(data=iconimg, format='png')
         self.window.iconphoto(True, icon)
 
         # heading label
@@ -135,7 +135,7 @@ class Login():
 
         # # button login and clear
 
-        Button(self.window, text="Login", font='Verdana 10 bold',width=20,
+        Button(self.window, text="Login", font='Verdana 10 bold', width=20,
                command=self.login).place(x=200, y=293)
 
         # # signup button
@@ -178,7 +178,7 @@ class Dashboard():
         self.window.config(background='#eff5f6')
 
         # Window Icon Photo
-        icon = PhotoImage(data= iconimg,format='png')
+        icon = PhotoImage(data=iconimg, format='png')
         self.window.iconphoto(True, icon)
 
         # ================== HEADER ====================================================
@@ -198,7 +198,7 @@ class Dashboard():
             x=0, y=0, width=300, height=700)
 
         # date and Time
-        self.clock_image = PhotoImage(data= timeimg,format='png')
+        self.clock_image = PhotoImage(data=timeimg, format='png')
         self.date_time_image = Label(
             newWindow, image=self.clock_image, bg="white")
         self.date_time_image.place(x=75, y=30)
@@ -210,9 +210,9 @@ class Dashboard():
         # logo
         gender = self.user[3]
         if gender == 'Male':
-            self.logoImage = PhotoImage(data= Male,format='png')
+            self.logoImage = PhotoImage(data=Male, format='png')
         else:
-            self.logoImage = PhotoImage(data= Female,format='png')
+            self.logoImage = PhotoImage(data=Female, format='png')
 
         self.logo = Label(newWindow, image=self.logoImage,
                           bg='#ffffff').place(x=60, y=80)
@@ -223,21 +223,22 @@ class Dashboard():
             "", 15, "bold")).place(x=80, y=240)
 
         # Gender
-        self.gen_img = PhotoImage(data= genderimg,format='png').subsample(2, 2)
+        self.gen_img = PhotoImage(data=genderimg, format='png').subsample(2, 2)
         Label(newWindow, image=self.gen_img,
               bg='#ffffff').place(x=30, y=290)
         Label(newWindow, text=self.user[3], bg='#ffffff',
               font='Verdana 11 ').place(x=80, y=290)
 
         # Organi
-        self.org_img = PhotoImage(data= org,format='png').subsample(2, 2)
+        self.org_img = PhotoImage(data=org, format='png').subsample(2, 2)
         Label(newWindow, image=self.org_img,
               bg='#ffffff').place(x=30, y=330)
         Label(newWindow, text=self.user[4], bg='#ffffff',
               font='Verdana 11 ').place(x=80, y=330)
 
         # Contact
-        self.contact_img = PhotoImage(data= contact,format='png').subsample(2, 2)
+        self.contact_img = PhotoImage(
+            data=contact, format='png').subsample(2, 2)
         Label(newWindow, image=self.contact_img,
               bg='#ffffff').place(x=30, y=370)
         Label(newWindow, text=self.user[5], bg='#ffffff',
@@ -248,7 +249,8 @@ class Dashboard():
         separator.place(x=0, y=610, width=300)
 
         # Add Device
-        self.routerImage = PhotoImage(data= device,format='png').subsample(3, 3)
+        self.routerImage = PhotoImage(
+            data=device, format='png').subsample(3, 3)
         Button(newWindow, text="  Add Device", bg='#ffffff', font=("", 13, "bold"), bd=0, image=self.routerImage, compound=LEFT,
                cursor='hand2', activebackground='#ffffff', command=self.add_device).place(x=70, y=620)
 
@@ -257,7 +259,7 @@ class Dashboard():
         separator.place(x=0, y=660, width=300)
 
         # Close Window
-        self.closeImage = PhotoImage(data= close,format='png')
+        self.closeImage = PhotoImage(data=close, format='png')
         Button(newWindow, text=" Close ", bg='#ffffff', font=("", 13, "bold"), bd=0, image=self.closeImage, compound=LEFT,
                cursor='hand2', activebackground='#ffffff', command=lambda: self.window.destroy()).place(x=30, y=670)
 
@@ -269,7 +271,7 @@ class Dashboard():
             self.window.destroy()
             Login()
         # Logout
-        self.logoutImage = PhotoImage(data= logot,format='png')
+        self.logoutImage = PhotoImage(data=logot, format='png')
         Button(newWindow, text=" Logout  ", bg='#ffffff', font=("", 13, "bold"), bd=0, image=self.logoutImage, compound=LEFT,
                cursor='hand2', activebackground='#ffffff', command=logout).place(x=180, y=670)
 
@@ -351,15 +353,15 @@ class Dashboard():
 
         def back():
             newWindow.destroy()
-            bb.destroy()
+            Button(self.window, text="  Add Device", bg='#ffffff', font=("", 13, "bold"), bd=0, image=self.routerImage, compound=LEFT,
+               cursor='hand2', activebackground='#ffffff', command=self.add_device).place(x=70, y=620)
         Button(newWindow, text='<- Back', width=10, bg='black',
-               fg='white', command=back).place(x=1, y=25)
+               fg='white', command= back).place(x=1, y=25)
 
-        bb = Button(self.window, text="  Add Device", bg='#ffffff', font=("", 13, "bold"), bd=0, image=self.routerImage, compound=LEFT,
-                    cursor='hand2', activebackground='#ffffff')
-        bb.place(x=50, y=620)
+        Button(self.window, text="  Add Device", bg='#ffffff', font=("", 13, "bold"), bd=0, image=self.routerImage, compound=LEFT,
+               cursor='hand2', activebackground='#ffffff').place(x=70, y=620)
         # image
-        device_img = PhotoImage(data= device,format='png')
+        device_img = PhotoImage(data=device, format='png')
         device_info = Label(newWindow, image=device_img, bg='white')
         device_info.pack()
         device_info.place(x=420, y=15)
@@ -437,7 +439,8 @@ class Dashboard():
                         "", 'end', iid=en2.get(), values=lst)
                     messagebox.showinfo(
                         "Success", "Device Added Successfull", parent=newWindow)
-                    Dashboard.output(f"Successfully Added Device {en1.get()} IP - {en2.get()} Type - {en5.get()}")
+                    Dashboard.output(
+                        f"Successfully Added Device {en1.get()} IP - {en2.get()} Type - {en5.get()}")
                     newWindow.destroy()
                 else:
                     messagebox.showerror(
@@ -469,7 +472,7 @@ class Dashboard():
                 Dashboard.output(f"Successfully Deleted Device  IP - {IP} ")
                 newWindow.destroy()
 
-        delete_img = PhotoImage(data= deleteimg,format='png')
+        delete_img = PhotoImage(data=deleteimg, format='png')
         Button(newWindow, image=delete_img, bg="white",
                command=delete, border=0).place(x=380, y=20)
 
@@ -477,43 +480,48 @@ class Dashboard():
         inWindow.place(x=450, y=20, width=550, height=300)
         # image
         if data[6] == 'Router':
-            device_img = PhotoImage(data= router,format='png')
+            device_img = PhotoImage(data=router, format='png')
         else:
-            device_img = PhotoImage(data= switch,format='png')
+            device_img = PhotoImage(data=switch, format='png')
 
         device_info = Label(newWindow, image=device_img)
         device_info.pack()
         device_info.place(x=600, y=30)
         Label(newWindow, text=data[6], font=(
             "arial", 20, 'bold')).place(x=680, y=280)
-        
-        #toggle buttons
-        self.telnet_img = PhotoImage(file='images/toggle-left.png')
-        self.ssh_img = PhotoImage(file='images/toggle-right.png')
-        
+
+        # toggle buttons
+        self.telnet_img = PhotoImage(data = telnet_img, format='png')
+        self.ssh_img = PhotoImage(data= ssh_img, format='png')
+
         def change():
             global connect
             if connect == 0:
                 connect = 1
                 sshBtn()
-            else: 
+            else:
                 connect = 0
                 telnetBtn()
 
         def telnetBtn():
-            togglebtn = Button(newWindow,image=self.telnet_img,command= change, bd=0)
+            global connect
+            connect = 0
+            togglebtn = Button(
+                newWindow, image=self.telnet_img, command=change, bd=0)
             togglebtn.pack()
-            togglebtn.place(x=460,y=260)
-            Label(newWindow,text='Telnet',bg="black",fg='white', font='bold').place(x = 502,y = 272)
-            
+            togglebtn.place(x=460, y=260)
+            Label(newWindow, text='Telnet', bg="black",
+                  fg='white', font='bold').place(x=502, y=272)
 
-        
         def sshBtn():
-            togglebtn = Button(newWindow,image=self.ssh_img,command= change, bd=0)
+            global connect
+            connect = 1
+            togglebtn = Button(newWindow, image=self.ssh_img,
+                               command=change, bd=0)
             togglebtn.pack()
-            togglebtn.place(x=460,y=260)
-            Label(newWindow,text='SSH',bg="black",fg='white', font='bold').place(x = 480,y = 272)
-
+            togglebtn.place(x=460, y=260)
+            Label(newWindow, text='SSH', bg="black",
+                  fg='white', font='bold').place(x=480, y=272)
 
         telnetBtn()
 
@@ -626,7 +634,6 @@ class Dashboard():
         CLI.see("end")
 
 
-
 class Routing():
 
     def __init__(self, config, window, commands) -> None:
@@ -636,7 +643,7 @@ class Routing():
         self.commands = commands
         self.output = ""
         self.flag = threading.Event()
-        
+
         self.newWindow = Frame(self.window, width=280, bg="black")
         self.newWindow.place(x=120, y=230, height=30)
         self.progress_bar = ttk.Progressbar(
@@ -708,10 +715,12 @@ class Routing():
                 telnet.write(to_bytes("configure terminal"))
                 for command in self.commands:
                     telnet.write(to_bytes(command))
-                    self.output = self.output + telnet.read_until(b"#").decode("utf-8")
+                    self.output = self.output + \
+                        telnet.read_until(b"#").decode("utf-8")
 
                 telnet.write(to_bytes("end"))
-                self.output = self.output + telnet.read_until(b"#").decode("utf-8")
+                self.output = self.output + \
+                    telnet.read_until(b"#").decode("utf-8")
             Database().saveconfig(self.config)
             messagebox.showinfo(
                 "Success", "Configured Successfully", parent=self.window)
@@ -1175,7 +1184,8 @@ class RemoveConfig (Dashboard):
                     'Activity': 'Remove',
                     'Last_Modify': datetime.today()
                 }
-                rip = ["router rip", f"no network {networkIP.get()}","no auto-summary"]
+                rip = ["router rip",
+                       f"no network {networkIP.get()}", "no auto-summary"]
                 Routing(config, newWindow, rip)
             except ValueError as e:
                 messagebox.showerror("Error", e, parent=newWindow)
@@ -1323,5 +1333,4 @@ class RemoveConfig (Dashboard):
 if __name__ == '__main__':
     global connect
     connect = 0
-    Dashboard(Tk(), Database().getUser('kk_pl', 'K2545'))
-    # Login()
+    Login()
