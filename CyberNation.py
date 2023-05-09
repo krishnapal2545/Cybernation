@@ -353,13 +353,8 @@ class Dashboard():
 
         def back():
             newWindow.destroy()
-            Button(self.window, text="  Add Device", bg='#ffffff', font=("", 13, "bold"), bd=0, image=self.routerImage, compound=LEFT,
-               cursor='hand2', activebackground='#ffffff', command=self.add_device).place(x=70, y=620)
         Button(newWindow, text='<- Back', width=10, bg='black',
                fg='white', command= back).place(x=1, y=25)
-
-        Button(self.window, text="  Add Device", bg='#ffffff', font=("", 13, "bold"), bd=0, image=self.routerImage, compound=LEFT,
-               cursor='hand2', activebackground='#ffffff').place(x=70, y=620)
         # image
         device_img = PhotoImage(data=device, format='png')
         device_info = Label(newWindow, image=device_img, bg='white')
