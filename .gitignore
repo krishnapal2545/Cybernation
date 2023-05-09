@@ -3,5 +3,4 @@ __pycache__
 build
 *.spec
 *.db
-Report
 project-files
